@@ -83,7 +83,7 @@ differs from glioma segmentation in a way that governs method design: the clinic
 targets are numerous, small, and scattered. The BraTS-MET task therefore scores
 \emph{lesion-wise}~\cite{bratsmet2023}. Predicted components are matched one-to-one to reference
 components~\cite{grosskopf2026matching}, each lesion contributes equally to the Dice and normalised surface Dice (NSD)
-averages irrespective of volume, and an unmatched prediction is penalised twice---once as a zero
+averages irrespective of volume, and an unmatched prediction is penalised twice: once as a zero
 appended to the lesion-wise Dice average, and again in the denominator of small-instance $F_1$.
 
 This inverts the usual economics. Under volumetric Dice a five-voxel false positive is
@@ -103,8 +103,8 @@ became a label map. Our contributions are:
       (Section~\ref{sec:ablation}), with no new architecture, loss, or training run.
 \item \textbf{A characterisation of the residual error, with seven refutations.} We show the
       remaining false positives are confident, coherent, isolated and corroborated across
-      independently trained networks, and that seven suppression mechanisms---several of them
-      standard practice---fail for this one reason (Section~\ref{sec:fp}).
+      independently trained networks, and that seven suppression mechanisms, several of them
+      standard practice, fail for this one reason (Section~\ref{sec:fp}).
 \item \textbf{A negative result about offline threshold tuning.} We identify a class of
       post-processing rule that \emph{cannot} be validated on training cases even in a purely
       relative comparison, and demonstrate it inverting the sign of a real submission
@@ -129,8 +129,8 @@ We use the BraTS-MET 2026 training set: 1295 multi-site cases, each with four co
 skull-stripped sequences (T1, T1-Gd, T2, T2-FLAIR) supplied in \emph{native} space, so voxel
 spacing and array dimensions vary across the cohort. Reference labels comprise non-enhancing
 tumour core (NETC), surrounding non-enhancing FLAIR hyperintensity (SNFH), enhancing tumour (ET)
-and resection cavity (RC). Region prevalence is markedly imbalanced---54\% NETC, 89\% SNFH,
-96\% ET and only 13\% RC---which is the principal reason the RC channel is our weakest and is
+and resection cavity (RC). Region prevalence is markedly imbalanced (54\% NETC, 89\% SNFH,
+96\% ET and only 13\% RC), which is the principal reason the RC channel is our weakest and is
 handled separately below. Validation uses the official 179-case set scored on the challenge
 server; we never see its reference labels.
 
@@ -147,7 +147,7 @@ overwrite their parents. This is the \texttt{Dataset007} configuration in our re
 
 The submission averages three ResEnc-L models sharing the residual-encoder plans and the
 \texttt{3d\_fullres} configuration (Table~\ref{tab:members}), all trained on all available
-data without a held-out fold---a decision we revisit critically in Sections~\ref{sec:harness}
+data without a held-out fold, a decision we revisit critically in Sections~\ref{sec:harness}
 and~\ref{sec:limits}.
 
 \begin{table}[t]
@@ -189,7 +189,7 @@ The mechanism is asymmetric, and the asymmetry is the point. A detection support
 members retains a high mean; one idiosyncratic to a single member is divided by three and falls
 below the decision threshold. Averaging the high-recall CC-loss member into two cleaner models
 reduced false positives from \textbf{1.66 to 0.85 per case} while retaining its corroborated true
-detections. Dice and $F_1$ rose \emph{together} rather than trading---the only mechanism we found
+detections. Dice and $F_1$ rose \emph{together} rather than trading, the only mechanism we found
 that does so, and the reason the ensemble is not merely a variance-reduction convenience.
 
 The resection cavity is treated separately. RC is a single large structure for which ensembling
@@ -446,7 +446,7 @@ $1/2$             & .670/.715/.691 & \textbf{.429/.530/.543} \\
 The same trade separates our two thresholds, which are \emph{not} interchangeable knobs. Lowering
 the seed threshold $hi$ from 0.70 to 0.65 gained $F_1$ $+0.042/+0.039/+0.043$ and lost Dice
 $-0.017$: a large move along the trade-off, and one we rejected. Lowering the extent threshold
-$lo$ from 0.30 to 0.25 gained Dice $+0.005/+0.005/+0.009$ for $-0.001$ $F_1$---not a move along
+$lo$ from 0.30 to 0.25 gained Dice $+0.005/+0.005/+0.009$ for $-0.001$ $F_1$: not a move along
 the trade-off at all, but a free gain, and the configuration we submitted. Pushing further to
 $lo=0.20$ returned to trading, adding $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on whole
 tumour, which brackets the useful range of the extent threshold at $lo=0.25$.
@@ -466,18 +466,18 @@ lesion.
 
 
 \textbf{The model is more confident about its mistakes than about the lesions it finds.} Its
-false positives are additionally spatially coherent---they survive Gaussian smoothing as solid
-blobs rather than dissolving as noise would---isolated, and \emph{corroborated}: they survive
+false positives are additionally spatially coherent (they survive Gaussian smoothing as solid
+blobs rather than dissolving as noise would), isolated, and \emph{corroborated}: they survive
 averaging across three independently trained networks because all three fire on them.
 
 This one fact refutes seven suppression mechanisms (Table~\ref{tab:refuted}). They differ in
-where they intervene---after decoding, inside the loss, or at the seed threshold---but all three
+where they intervene (after decoding, inside the loss, or at the seed threshold), but all three
 families reduce to the same operation, ranking components by confidence or by a quantity monotone
 in it, which is why they fail together. We report them because the failure is
 systematic rather than incidental, and because several are standard practice a reader would
 otherwise reasonably try. The pattern across the middle column is the finding: the per-component
 loss penalty collapsed into global under-confidence, and the learned veto never learned what a
-false positive looks like, for the reason this section documents---they look like lesions.
+false positive looks like, for the reason this section documents: they look like lesions.
 
 \begin{table}[t]
 \centering
@@ -493,18 +493,18 @@ something monotone in it, and our false positives sit at the confident end.}
 \toprule
 mechanism & outcome \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(a) Post-hoc component filters} --- rank on size or mean confidence}\\
+\multicolumn{2}{@{}l}{\emph{(a) Post-hoc component filters}: rank on size or mean confidence}\\
 \addlinespace[2pt]
 small-component filters      & annihilated $F_1$; small \emph{is} real \\
 rejection by mean confidence & recovered Dice, destroyed the recall it was meant to preserve \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(b) Loss-level suppression} --- rank on a learned per-component score}\\
+\multicolumn{2}{@{}l}{\emph{(b) Loss-level suppression}: rank on a learned per-component score}\\
 \addlinespace[2pt]
 per-component FP penalty     & FP $-53\%$ but TP $-24\%$; collapsed into global under-confidence \\
 the same model as a veto     & at $t=0.5$ it rejected \emph{everything} (TP $1.82\to0.51$) \\
 blending the veto with the base & FPs and TPs removed in lockstep at every mixing ratio \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(c) Seed-threshold variants} --- rank on a transformed confidence}\\
+\multicolumn{2}{@{}l}{\emph{(c) Seed-threshold variants}: rank on a transformed confidence}\\
 \addlinespace[2pt]
 size-adaptive seed threshold & reproduces the plain global threshold exactly \\
 scale-space (smoothed) seed  & at every matched FP rate the plain threshold detects more \\
@@ -512,10 +512,10 @@ scale-space (smoothed) seed  & at every matched FP rate the plain threshold dete
 \end{tabular}
 \end{table}
 
-\subsection{Mimics, not annotation gaps---and still not separable}
+\subsection{Mimics, not annotation gaps, and still not separable}
 
-Two explanations remained. Either these are anatomical \emph{mimics}---enhancing vessels, choroid
-plexus, dural structures---that a radiologist excludes using context the network lacks, or they
+Two explanations remained. Either these are anatomical \emph{mimics} (enhancing vessels, choroid
+plexus, dural structures) that a radiologist excludes using context the network lacks, or they
 are \emph{real metastases the annotators missed}, in which case part of the ceiling is not ours
 to move.
 
@@ -530,8 +530,8 @@ Anatomical position is a genuinely different separation axis from confidence, so
 rather than trusting the impression. Distance from the brain surface to the false-positive
 centroid has a median of 8.8\,mm against 11.2\,mm for reference lesion centroids, with almost
 fully overlapping interquartile ranges and an area under the ROC curve of \textbf{0.575}. False
-positives are only marginally more peripheral, and grey--white junction metastases---a common
-true presentation---sit at the same depth, so any filter aggressive enough to remove the mimics
+positives are only marginally more peripheral, and grey--white junction metastases, a common
+true presentation, sit at the same depth, so any filter aggressive enough to remove the mimics
 removes real lesions with them. The axis is measurable, real, and useless.
 
 \subsection{Two attempts to fix detection during training}
@@ -566,13 +566,13 @@ $+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmi
 
 We built a local harness around the official evaluation code over 80 reference tumour cases and
 100 cavity cases, gated on reproducing the relative ordering of our own previously scored
-submissions. It replaced blind two-submissions-per-day guessing---during which $F_1$ moved
-$+0.001$ in ten days---and selected our best submission from 28 candidate decodes at no
+submissions. It replaced blind two-submissions-per-day guessing, during which $F_1$ moved
+$+0.001$ in ten days, and selected our best submission from 28 candidate decodes at no
 submission cost. It also has a failure mode we did not anticipate, and which applies to any team
 tuning post-processing on models trained without a held-out fold.
 
-Every model was trained on these cases. For decodes---the same probabilities post-processed
-differently---this is tolerable, because memorisation is common-mode and largely cancels from a
+Every model was trained on these cases. For decodes (the same probabilities post-processed
+differently) this is tolerable, because memorisation is common-mode and largely cancels from a
 \emph{ranking} of candidates. It is not tolerable for a rule that changes \emph{how many
 components are kept}. On memorised cases the model rarely emits a spurious component, since it
 knows the answer, so a ``keep more components'' rule appears free, with true positives rising and
@@ -581,7 +581,7 @@ them. \textbf{Memorisation suppresses precisely the false positives that the rul
 so the harness is structurally blind to its cost.}
 
 The effect is not small. A cavity keep-rule measured locally at $+0.028$ lesion-wise Dice
-delivered $-0.016$ on the validation set---the wrong \emph{sign}, not merely the wrong magnitude.
+delivered $-0.016$ on the validation set: the wrong \emph{sign}, not merely the wrong magnitude.
 More broadly the harness consistently overestimated the size of the gains it predicted, by
 roughly a factor of three. Our operating rule became: thresholds and fusion weights may be tuned offline,
 because they change values rather than counts; component filters, keep-rules and size cutoffs may
