@@ -470,8 +470,10 @@ false positives are additionally spatially coherent---they survive Gaussian smoo
 blobs rather than dissolving as noise would---isolated, and \emph{corroborated}: they survive
 averaging across three independently trained networks because all three fire on them.
 
-This one fact refutes seven suppression mechanisms (Table~\ref{tab:refuted}), each of which
-separates on confidence or on a quantity monotone in it. We report them because the failure is
+This one fact refutes seven suppression mechanisms (Table~\ref{tab:refuted}). They differ in
+where they intervene---after decoding, inside the loss, or at the seed threshold---but all three
+families reduce to the same operation, ranking components by confidence or by a quantity monotone
+in it, which is why they fail together. We report them because the failure is
 systematic rather than incidental, and because several are standard practice a reader would
 otherwise reasonably try. The pattern across the middle column is the finding: the per-component
 loss penalty collapsed into global under-confidence, and the learned veto never learned what a
@@ -479,38 +481,33 @@ false positive looks like, for the reason this section documents---they look lik
 
 \begin{table}[t]
 \centering
-\caption{The seven refuted false-positive suppression mechanisms. The middle column is the
-point: every one of them ranks candidate components by confidence, or by a quantity monotone in
-it, and our false positives sit at the confident end.}
+\caption{The seven refuted false-positive suppression mechanisms, grouped by the quantity they
+rank components on. All three families reduce to ordering components by confidence, or by
+something monotone in it, and our false positives sit at the confident end.}
 \label{tab:refuted}
 \small
 \setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.235\textwidth}
-                  >{\raggedright\arraybackslash}p{0.165\textwidth}
-                  >{\raggedright\arraybackslash}p{0.555\textwidth}@{}}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.335\textwidth}
+                  >{\raggedright\arraybackslash}p{0.615\textwidth}@{}}
 \toprule
-mechanism & separates on & outcome \\
+mechanism & outcome \\
 \midrule
-small-component filters      & size            & annihilated $F_1$; small \emph{is} real \\
-\addlinespace[1.5pt]
-rejection by mean confidence & mean prob.      & recovered Dice, destroyed the recall it was
-                                                 meant to preserve \\
-\addlinespace[1.5pt]
-per-component FP penalty in the loss & component prob. & FP $-53\%$ but TP $-24\%$; collapsed
-                                                 into global under-confidence \\
-\addlinespace[1.5pt]
-the same model as a learned veto & learned prob. & at $t=0.5$ it rejected \emph{everything}
-                                                 (TP $1.82\to0.51$) \\
-\addlinespace[1.5pt]
-blending the veto with the base & mixture of both & FPs and TPs removed in lockstep at every
-                                                 mixing ratio \\
-\addlinespace[1.5pt]
-size-adaptive seed threshold & size $\times$ prob. & reproduces the plain global threshold
-                                                 exactly \\
-\addlinespace[1.5pt]
-scale-space (smoothed) seed  & smoothed prob.  & at every matched FP rate the plain threshold
-                                                 detects more \\
+\multicolumn{2}{@{}l}{\emph{(a) Post-hoc component filters} --- rank on size or mean confidence}\\
+\addlinespace[2pt]
+small-component filters      & annihilated $F_1$; small \emph{is} real \\
+rejection by mean confidence & recovered Dice, destroyed the recall it was meant to preserve \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{(b) Loss-level suppression} --- rank on a learned per-component score}\\
+\addlinespace[2pt]
+per-component FP penalty     & FP $-53\%$ but TP $-24\%$; collapsed into global under-confidence \\
+the same model as a veto     & at $t=0.5$ it rejected \emph{everything} (TP $1.82\to0.51$) \\
+blending the veto with the base & FPs and TPs removed in lockstep at every mixing ratio \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{(c) Seed-threshold variants} --- rank on a transformed confidence}\\
+\addlinespace[2pt]
+size-adaptive seed threshold & reproduces the plain global threshold exactly \\
+scale-space (smoothed) seed  & at every matched FP rate the plain threshold detects more \\
 \bottomrule
 \end{tabular}
 \end{table}
