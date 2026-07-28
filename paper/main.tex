@@ -13,14 +13,18 @@
 % Requires llncs.cls -- see paper/README.md.
 \documentclass[runningheads]{llncs}
 
+\usepackage[table]{xcolor}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
-\usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
+
+\definecolor{famtext}{RGB}{28,74,128}
+\definecolor{famrow}{RGB}{233,240,249}
+\definecolor{hdrrow}{RGB}{240,240,240}
 
 \begin{document}
 
@@ -362,7 +366,7 @@ Official lesion-wise metrics, 179 cases.}
  & WT & TC & ET & RC \\
 \midrule
 Lesion-wise Dice     & 0.725 & 0.766 & 0.746 & 0.630 \\
-Lesion-wise NSD      & TODO  & TODO  & TODO  & TODO  \\
+Lesion-wise NSD      & 0.741 & 0.815 & 0.806 & 0.521 \\
 Small-instance $F_1$ & 0.376 & 0.478 & 0.476 & \textbf{0.167} \\
 \bottomrule
 \end{tabular}
@@ -491,20 +495,24 @@ something monotone in it, and our false positives sit at the confident end.}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.335\textwidth}
                   >{\raggedright\arraybackslash}p{0.615\textwidth}@{}}
 \toprule
-mechanism & outcome \\
+\rowcolor{hdrrow}
+\textbf{mechanism} & \textbf{outcome} \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(a) Post-hoc component filters}: rank on size or mean confidence}\\
+\rowcolor{famrow}
+\multicolumn{2}{@{}l}{\textcolor{famtext}{\emph{(a) Post-hoc component filters}: rank on size or mean confidence}}\\
 \addlinespace[2pt]
 small-component filters      & annihilated $F_1$; small \emph{is} real \\
 rejection by mean confidence & recovered Dice, destroyed the recall it was meant to preserve \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(b) Loss-level suppression}: rank on a learned per-component score}\\
+\rowcolor{famrow}
+\multicolumn{2}{@{}l}{\textcolor{famtext}{\emph{(b) Loss-level suppression}: rank on a learned per-component score}}\\
 \addlinespace[2pt]
 per-component FP penalty     & FP $-53\%$ but TP $-24\%$; collapsed into global under-confidence \\
 the same model as a veto     & at $t=0.5$ it rejected \emph{everything} (TP $1.82\to0.51$) \\
 blending the veto with the base & FPs and TPs removed in lockstep at every mixing ratio \\
 \midrule
-\multicolumn{2}{@{}l}{\emph{(c) Seed-threshold variants}: rank on a transformed confidence}\\
+\rowcolor{famrow}
+\multicolumn{2}{@{}l}{\textcolor{famtext}{\emph{(c) Seed-threshold variants}: rank on a transformed confidence}}\\
 \addlinespace[2pt]
 size-adaptive seed threshold & reproduces the plain global threshold exactly \\
 scale-space (smoothed) seed  & at every matched FP rate the plain threshold detects more \\

@@ -57,7 +57,7 @@ Best submission **`9771992`** — 3-way fusion, hysteresis `lo 0.25 / hi 0.70`.
 | | WT | TC | ET | RC |
 |---|---|---|---|---|
 | **Lesion-wise DSC** | .725 | .766 | .746 | .630 |
-| **Lesion-wise NSD** | — | — | — | — |
+| **Lesion-wise NSD** | .741 | .815 | .806 | .521 |
 | **Small-instance F1** | .376 | .478 | .476 | **.167** |
 
 Overlap and surface metrics are strong; the three tumour F1 cells are the residual gap, and
