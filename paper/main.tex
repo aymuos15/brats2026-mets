@@ -78,8 +78,8 @@ thresholding \and False positives \and nnU-Net \and BraTS.}
 Brain metastases are the most common intracranial malignancy, and their automated delineation
 differs from glioma segmentation in a way that governs method design: the clinically decisive
 targets are numerous, small, and scattered. The BraTS-MET task therefore scores
-\emph{lesion-wise}~\cite{bratsmet2023}. Predicted components are matched to reference
-components, each lesion contributes equally to the Dice and normalised surface Dice (NSD)
+\emph{lesion-wise}~\cite{bratsmet2023}. Predicted components are matched one-to-one to reference
+components~\cite{grosskopf2026matching}, each lesion contributes equally to the Dice and normalised surface Dice (NSD)
 averages irrespective of volume, and an unmatched prediction is penalised twice---once as a zero
 appended to the lesion-wise Dice average, and again in the denominator of small-instance $F_1$.
 
@@ -111,7 +111,7 @@ became a label map. Our contributions are:
 \paragraph{What is and is not novel.} No component here is new: nnU-Net and its residual-encoder
 variants are off the shelf~\cite{isensee2021nnunet,isensee2024resenc}, probability averaging is
 standard, hysteresis dates to Canny~\cite{canny1986}, and our third member's objective follows
-blob loss~\cite{kofler2022blob}. We claim the empirical finding that this combination is where
+blob loss~\cite{kofler2022blob,kundu2026instance}. We claim the empirical finding that this combination is where
 the performance is under lesion-wise scoring, plus the two negative results. Readers looking for
 a new architecture will not find one, and our argument is that they should not be looking.
 
@@ -163,7 +163,8 @@ CC-loss     & 6-region  & component-weighted fine-tune & high-recall detector \\
 \end{table}
 
 The third member is fine-tuned with a connected-component-aware objective that weights each
-lesion equally rather than each voxel, following the blob-loss principle~\cite{kofler2022blob}.
+lesion equally rather than each voxel, following the blob-loss
+principle~\cite{kofler2022blob,kundu2026instance}.
 It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
 $F_1$ of .429/.530/.543, the highest we ever recorded, while its lesion-wise Dice fell to
 .670/.715/.691, far below our baseline; alone, it is sunk entirely by its false positives. This
@@ -647,6 +648,16 @@ In: IPMI 2023. Springer (2023)
 \bibitem{canny1986}
 Canny, J.: A computational approach to edge detection. IEEE Transactions on Pattern Analysis and
 Machine Intelligence \textbf{8}(6), 679--698 (1986)
+
+\bibitem{kundu2026instance}
+Kundu, S.S., Kofler, F., Ivory, M., M\"oller, H., Shapey, J., Vercauteren, T.: Instance awareness
+of multi-class semantic segmentation loss functions. arXiv:2604.24276 (2026)
+
+\bibitem{grosskopf2026matching}
+Gro\ss{}kopf, E., Kundu, S.S., M\"oller, H., M\"unster, N., Astaraki, M., Buzduga, P.T., Ritter, K.,
+Wiestler, B., Kirschke, J., Shapey, J., Vercauteren, T., Kofler, F.: Redefining instance matching:
+a unified framework for part-aware matching in panoptic segmentation evaluation.
+arXiv:2605.31094 (2026)
 
 % TODO: the organisers will release the BraTS 2026 challenge manuscript and require it to be
 % cited. Re-check the Challenge Rules wiki page (syn74274097 / 639585) before camera-ready.
