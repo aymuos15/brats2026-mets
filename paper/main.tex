@@ -155,8 +155,8 @@ overwrite their parents. This is the \texttt{Dataset007} configuration in our re
 
 The submission averages three ResEnc-L models sharing the residual-encoder plans and the
 \texttt{3d\_fullres} configuration (Table~\ref{tab:members}), all trained on all available
-data without a held-out fold, a decision we revisit critically in Sections~\ref{sec:harness}
-and~\ref{sec:limits}.
+data without a held-out fold, a decision whose consequences we return to in
+Section~\ref{sec:harness}.
 
 \begin{table}[t]
 \centering
@@ -541,8 +541,9 @@ and at the midline in falx and superior sagittal sinus territory. Few resemble w
 gap would look like, namely an isolated round parenchymal lesion in otherwise uniform white
 matter.
 
-Anatomical position is a genuinely different separation axis from confidence, so we measured it
-rather than trusting the impression. Distance from the brain surface to the false-positive
+That review was carried out by a non-radiologist on single axial slices, so we treated it as a
+hypothesis to test rather than a clinical assessment. Anatomical position is a genuinely
+different separation axis from confidence, so we measured it. Distance from the brain surface to the false-positive
 centroid has a median of 8.8\,mm against 11.2\,mm for reference lesion centroids, with almost
 fully overlapping interquartile ranges and an area under the ROC curve of \textbf{0.575}. False
 positives are only marginally more peripheral, and grey--white junction metastases, a common
@@ -606,22 +607,6 @@ weights may be tuned offline, because they change values rather than counts; com
 keep-rules and size cutoffs may not, and must be validated on a real submission or a genuine
 held-out fold. Applying it is what let us spend our remaining submissions on decisions the
 harness could actually settle.
-
-\subsection{Limitations}
-\label{sec:limits}
-
-All models are trained without a held-out fold, which is the root cause of the harness limitation
-above and the reason our offline forecasts are optimistic by roughly a factor of three. A single
-held-out-fold run would fix this permanently and would additionally supply a decorrelated
-ensemble member; we exhausted our compute budget before it was possible. Our members share a
-lineage, which is why they corroborate one another's false positives and why adding a fourth
-member of the same lineage did not help. As noted in Section~\ref{sec:results}, we cannot report
-dispersion or significance on the validation set because per-case scores are not returned to
-participants. The visual review of false positives was performed by a non-radiologist on single
-axial slices and should be read as the hypothesis that the surface-distance measurement was
-designed to test, not as a clinical assessment. Finally, all findings are specific to
-lesion-wise scoring on this cohort; the frontier of Section~\ref{sec:frontier} would look
-entirely different under a volumetric metric.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
