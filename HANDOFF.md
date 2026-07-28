@@ -180,10 +180,12 @@ submitters at the last pull). They are:
 
 ```bash
 git log --all --name-only --format="" | sort -u | grep -E "lb_snapshot|lb\.json|lb_1400|brats2026final"
-git grep -l "eyJ0eXAi" $(git rev-list --all)      # Synapse token
+git grep -l "eyJ0e""XAi" $(git rev-list --all)   # Synapse token (JWT prefix)
 ```
 
-Both must return nothing. The Synapse token is **not** in the repo; the copy of the handoff at
+The first must return nothing. The second is written with a broken string literal so that this
+file does not match its own check; if you retype it whole, expect `HANDOFF.md` itself as a hit and
+treat **any other file** as a real one. The Synapse token is **not** in the repo; the copy of the handoff at
 `docs/BraTSHandoff2026.md` has it redacted (the original on the laptop still contains it).
 
 `../.brats-staging/` holds the rsync staging copy from sie271 and also contains the dumps. It was
