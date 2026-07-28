@@ -1,0 +1,51 @@
+# BraTS 2026 Task 1 (Brain Metastases) — three-way fusion + hysteresis container.
+#
+# Eval infra is amd64 with CUDA <= 13.0; we train on aarch64 GB10s, so this MUST be
+# built for linux/amd64:
+#   docker buildx build --platform linux/amd64 \
+#     -t docker.synapse.org/<PROJECT_ID>/brats-mets-3way:v1 --load -f Dockerfile.2026 .
+#
+# Build context must contain:
+#   run_inference.py
+#   model/topk/       {plans,dataset,dataset_fingerprint}.json + fold_all/checkpoint_final.pth
+#   model/completion/ "
+#   model/ccloss/     "
+#
+# Network is DISABLED at evaluation: torch, nnunetv2 and all three checkpoints are baked in.
+
+FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+
+ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1
+
+RUN pip install --no-cache-dir \
+        nnunetv2==2.6.4 \
+        SimpleITK==2.4.0 \
+        nibabel \
+        scipy
+
+# Our custom trainer classes (nnUNetTrainerDiceTopK10BCE, nnUNetTrainerCCLoss_BackSplit_FT, ...)
+# are NOT in the stock pip package, and nnU-Net resolves the trainer by name from the checkpoint
+# at inference time. Overlay our own nnunetv2 tree (same 2.6.4, pure Python) so the classes and
+# losses match training exactly.
+COPY nnunetv2_custom/ /opt/conda/lib/python3.11/site-packages/nnunetv2/
+
+# nnU-Net reads these from the environment even when only inference is performed.
+ENV nnUNet_raw=/opt/nnunet/raw \
+    nnUNet_preprocessed=/opt/nnunet/preprocessed \
+    nnUNet_results=/opt/nnunet/results \
+    nnUNet_compile=0 \
+    MODEL_ROOT=/opt/models \
+    BRATS_LO=0.25 \
+    BRATS_HI=0.70 \
+    BRATS_STEP=0.25 \
+    BRATS_TTA=1
+
+# Three ensemble members. Each dir is a self-contained nnU-Net model folder.
+COPY model/topk/       /opt/models/topk/
+COPY model/completion/ /opt/models/completion/
+COPY model/ccloss/     /opt/models/ccloss/
+
+COPY run_inference.py /opt/run_inference.py
+
+ENTRYPOINT ["python", "/opt/run_inference.py"]
+CMD ["--input-dir", "/input", "--output-dir", "/output"]

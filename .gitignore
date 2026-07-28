@@ -1,0 +1,46 @@
+# --- SECRETS: never commit ---
+*.tok
+syn.tok
+*token*
+.env
+
+# --- model weights / large binaries ---
+*.pth
+*.tar.gz
+*.zip
+*.npz
+*.b2nd
+*.pkl
+*.nii
+*.nii.gz
+
+# --- inference caches ---
+val_infer/
+extracted/
+extracted_rc/
+raw_zips/
+predictions/
+
+# --- envs ---
+.venv/
+venv/
+evalenv/
+__pycache__/
+*.pyc
+
+# --- huge logs (curated ones live in results/logs) ---
+*.log
+!results/logs/*.log
+.staging/
+.docker-build/
+
+# LaTeX build artifacts
+paper/build/
+paper/llncs.cls
+
+# Full-field leaderboard dumps: contain every team's scores. Publishing these
+# would be "overall challenge results", which the challenge rules embargo until
+# the organisers' overview paper is out. Kept locally, never committed.
+results/leaderboard/lb*.csv
+results/leaderboard/lb*.json
+results/leaderboard/brats2026final.html
