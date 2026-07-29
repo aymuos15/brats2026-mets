@@ -12,7 +12,7 @@ the modelling work up to 2026-07-24. This file covers the submission artifacts._
 | # | artifact | state |
 |---|---|---|
 | 1 | **Short paper** (OpenReview) | draft complete, compiles, 3 items outstanding — §2 |
-| 2 | **Docker container** (docker.synapse.org) | built and timed locally, **not pushed** — §3 |
+| 2 | **Docker container** (docker.synapse.org) | **PUSHED + SUBMITTED 07-29** as `9774087` — §3 |
 | 3 | **Signed copyright form** | organisers share it; timing is ambiguous — §5 |
 
 **No paper ⇒ the Docker is never run ⇒ no final ranking.** The two are linked by our Synapse team
@@ -144,7 +144,21 @@ laptop). Checkpoints came from `sie271:~/projects/CAI4CAI/models/`:
 | ccloss | D011 `nnUNetTrainerCCLoss_BackSplit_FT` | `checkpoint_best.pth` |
 
 Each is renamed to `fold_all/checkpoint_final.pth` inside the image so the entrypoint can use one
-name. **Never pushed to `docker.synapse.org` — that step has not been done.**
+name.
+
+### ✅ Pushed and submitted 2026-07-29
+
+```
+image      docker.synapse.org/syn75900400/brats-mets-3way:v1
+digest     sha256:223d6de4bd00cf4b4734bdd3d5900c84767641ba20667a2b3dea2f43124852d0
+repo entity syn76483331   (project syn75900400)
+queue      9619627  "Task 1: Brain Metastases - Docker"
+submission 9774087  "3way_lo025hi070_ccRC"   status RECEIVED
+```
+
+Decode baked in is `LO 0.25 / HI 0.70`, 3-way fusion, RC from CC-loss keep-largest — i.e. our best
+validation submission `9771992`. **The container is only run if the short paper is submitted with
+Synapse team name 3495063 on the OpenReview form.**
 
 Test with the organisers' exact command; `--gpus '"device=0"'` keeps the 5090 free on sie236:
 
