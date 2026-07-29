@@ -36,7 +36,8 @@ pdflatex main && pdflatex main
 
 ## Open TODOs in the draft
 
-1. **Author names, affiliations, ORCIDs, emails** — placeholders in `main.tex`.
+1. **ORCIDs** — not yet in `main.tex`. Author names, affiliations and the corresponding
+   e-mail (`soumya_snigdha.kundu@kcl.ac.uk`) are confirmed.
 2. **NSD row in Table `tab:final` is `TODO`.** The handoff records NSD `.739/.811/.798/.521` for
    submission `9771508`, *not* for our best `9771992`. Pull the correct row before submitting:
    ```bash

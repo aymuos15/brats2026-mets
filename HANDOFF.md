@@ -11,7 +11,7 @@ the modelling work up to 2026-07-24. This file covers the submission artifacts._
 
 | # | artifact | state |
 |---|---|---|
-| 1 | **Short paper** (OpenReview) | draft complete, compiles, 4 items outstanding — §2 |
+| 1 | **Short paper** (OpenReview) | draft complete, compiles, 3 items outstanding — §2 |
 | 2 | **Docker container** (docker.synapse.org) | built and timed locally, **not pushed** — §3 |
 | 3 | **Signed copyright form** | organisers share it; timing is ambiguous — §5 |
 
@@ -67,11 +67,9 @@ Acknowledgements *do* count. There is no page budget left — anything added mus
 1. **Training-set results table.** The rules require results on training *and* validation data.
    Validation is Table 2; there is no training table. This is the one **unmet hard requirement**.
    Removing the Limitations section freed roughly the half page it needs.
-2. **Corresponding e-mail is a guess** — `soumya_snigdha.kundu@kcl.ac.uk`, marked
-   `% TODO(verify)` in the source. Do not submit without checking.
-3. **Public GitHub repo.** The paper cites `github.com/aymuos15/brats2026-mets`. It does not exist
+2. **Public GitHub repo.** The paper cites `github.com/aymuos15/brats2026-mets`. It does not exist
    yet, so the required source-code link does not resolve. See §4.
-4. **BraTS 2026 challenge manuscript citation** — organisers release it and require it be cited.
+3. **BraTS 2026 challenge manuscript citation** — organisers release it and require it be cited.
    Marked as a TODO in the bibliography; re-check wiki page 639585 before camera-ready.
 
 **Framing decisions made deliberately — do not reverse without reading §4:**

@@ -44,7 +44,6 @@ Tom Vercauteren\inst{1}%
 
 \institute{School of Biomedical Engineering \& Imaging Sciences,
 King's College London, London, UK\\
-% TODO(verify): institutional e-mail address for the corresponding author.
 \email{soumya\_snigdha.kundu@kcl.ac.uk}
 \and
 Department of Neurosurgery, King's College Hospital NHS Foundation Trust,
@@ -86,7 +85,8 @@ thresholding \and False positives \and nnU-Net \and BraTS.}
 
 Brain metastases are the most common intracranial malignancy, and their automated delineation
 differs from glioma segmentation in a way that governs method design: the clinically decisive
-targets are numerous, small, and scattered. The BraTS-MET task therefore scores
+targets are numerous, small, and scattered. Where the glioma benchmarks that shaped the field
+score whole regions~\cite{baid2021}, the BraTS-MET task therefore scores
 \emph{lesion-wise}~\cite{bratsmet2023}. Predicted components are matched one-to-one to reference
 components~\cite{grosskopf2026matching}, each lesion contributes equally to the Dice and normalised surface Dice (NSD)
 averages irrespective of volume, and an unmatched prediction is penalised twice: once as a zero
@@ -140,7 +140,8 @@ tumour core (NETC), surrounding non-enhancing FLAIR hyperintensity (SNFH), enhan
 and resection cavity (RC). Region prevalence is markedly imbalanced (54\% NETC, 89\% SNFH,
 96\% ET and only 13\% RC), which is the principal reason the RC channel is our weakest and is
 handled separately below. Validation uses the official 179-case set scored on the challenge
-server; we never see its reference labels.
+server, which runs the organisers' evaluation containers through the MedPerf
+platform~\cite{medperf2023}; we never see its reference labels.
 
 We predict four \emph{overlapping} binary regions with independent sigmoids rather than mutually
 exclusive classes,
