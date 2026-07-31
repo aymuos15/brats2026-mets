@@ -270,42 +270,44 @@ that matter.
   (7.60,0.03) (8.15,0.04) (8.30,0.25) (8.45,0.62) (8.60,0.88) (8.75,0.62)
   (8.90,0.25) (9.05,0.05) (9.40,0.02) };
 
-% ---- what a single strict threshold would have kept ------------------------
-\draw[line width=2.6pt,black!45] (1.69,-0.10) -- (2.31,-0.10);
-\node[font=\scriptsize,black!55,anchor=west] at (2.45,-0.10)
-  {extent kept by $t_{\mathrm{hi}}$ alone: the margin is amputated};
-
-% ---- extents retained / dropped by hysteresis ------------------------------
-\draw[line width=2.6pt,green!45!black]            (1.20,-0.24) -- (2.80,-0.24);
-\draw[line width=2.6pt,red!65!black] (3.75,-0.24) -- (5.35,-0.24);
-\draw[line width=2.6pt,red!65!black] (6.30,-0.24) -- (6.90,-0.24);
-\draw[line width=2.6pt,green!45!black]            (8.30,-0.24) -- (8.90,-0.24);
-
-% ---- verdicts --------------------------------------------------------------
-\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (2.00,-0.29)
-  {\textbf{kept}\\[-1pt] peak $0.92$};
-\node[font=\scriptsize,align=center,anchor=north,red!55!black]   at (4.55,-0.29)
-  {\textbf{dropped}\\[-1pt] peak $0.52$};
-\node[font=\scriptsize,align=center,anchor=north,red!55!black]   at (6.60,-0.29)
-  {\textbf{dropped}\\[-1pt] peak $0.35$};
-\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (8.60,-0.29)
-  {\textbf{kept}\\[-1pt] peak $0.88$};
-
 % ---- component names -------------------------------------------------------
 \node[font=\scriptsize,anchor=south] at (2.00,0.95) {large lesion};
 \node[font=\scriptsize,anchor=south] at (4.55,0.56) {diffuse region};
 \node[font=\scriptsize,anchor=south] at (6.60,0.38) {noise speck};
 \node[font=\scriptsize,anchor=south] at (8.60,0.91) {small lesion};
 
+% ---- resulting masks, one strip per rule -----------------------------------
+% strip 1: threshold at t_hi only -- correct rejections, but both lesions truncated
+\fill[black!45] (1.69,-0.19) rectangle (2.31,-0.13);
+\fill[black!45] (8.50,-0.19) rectangle (8.70,-0.13);
+\node[font=\scriptsize,black!60,anchor=west] at (9.70,-0.16)
+  {$t_{\mathrm{hi}}$ only: margins amputated};
+
+% strip 2: threshold at t_lo only -- correct extents, but the junk comes too
+\fill[red!65!black] (1.20,-0.37) rectangle (2.80,-0.31);
+\fill[red!65!black] (3.75,-0.37) rectangle (5.35,-0.31);
+\fill[red!65!black] (6.30,-0.37) rectangle (6.90,-0.31);
+\fill[red!65!black] (8.30,-0.37) rectangle (8.90,-0.31);
+\node[font=\scriptsize,red!55!black,anchor=west] at (9.70,-0.34)
+  {$t_{\mathrm{lo}}$ only: junk admitted};
+
+% strip 3: hysteresis -- extents of strip 2, existence test of strip 1
+\fill[green!45!black] (1.20,-0.55) rectangle (2.80,-0.49);
+\fill[green!45!black] (8.30,-0.55) rectangle (8.90,-0.49);
+\node[font=\scriptsize,green!35!black,anchor=west] at (9.70,-0.52)
+  {\textbf{hysteresis}: both right};
+
 \end{tikzpicture}
-\caption{Hysteresis decoding on a 1-D slice through the fused probability map. Every component of
-$\bar{p}_r>t_{\mathrm{lo}}$ is a candidate; it is kept \emph{in full} if its peak clears
-$t_{\mathrm{hi}}$ (green) and deleted entirely if it never does (red). The grey bar shows what a
-single strict threshold at $t_{\mathrm{hi}}$ would have kept of the large lesion: everything in
-the shaded band is amputated, which is the margin the second threshold exists to recover. The
-noise speck and the small lesion are drawn the same width and meet opposite fates, decided only
-by peak; size and mean probability are never consulted, which is what separates this rule from
-the component filters of Section~\ref{sec:fp}.}
+\caption{Hysteresis decoding on a 1-D slice through the fused probability map. The three strips
+are the masks each rule produces. A single strict threshold (grey) rejects the junk but keeps only
+the tips of the two lesions. A single permissive threshold (red) recovers their full extent but
+admits the diffuse region and the speck as well. Hysteresis (green) takes the extents of the
+permissive mask and the existence test of the strict one: a component survives only if it contains
+a voxel above $t_{\mathrm{hi}}$, and then survives \emph{whole}. The diffuse region and the speck
+lie entirely inside the shaded band, so neither contains such a voxel and both vanish, however wide
+they are; the small lesion is drawn the same width as the speck and survives on its peak alone.
+Size and mean probability are never consulted, which is what separates this rule from the
+component filters of Section~\ref{sec:fp}.}
 \label{fig:hyst}
 \end{figure}
 
