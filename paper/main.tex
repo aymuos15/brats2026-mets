@@ -455,25 +455,22 @@ $t_{\mathrm{lo}}=0.20$ added $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on w
 \subsection{Confidence is inverted with respect to correctness}
 \label{sec:fp}
 
-Measured on 80 training cases, per region over WT, TC and ET and then pooled, at the then-current
-decode $t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$. A \emph{small} lesion is a reference
-component below the official 20\,mm$^3$ cut; a \emph{false positive} is a decoded component
-sharing no voxel with the reference mask for its region; a small lesion counts as detected if any
-decoded voxel falls inside it. Components are labelled with 26-connectivity and probabilities read
-from the fused map $\bar{p}_r$.
+Measured on 80 training cases, pooled over WT, TC and ET at the then-current decode
+$t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$, with components labelled at 26-connectivity on the
+fused map $\bar{p}_r$. A \emph{small} lesion is a reference component below the official
+20\,mm$^3$ cut, detected if any decoded voxel falls inside it; a \emph{false positive} is a
+decoded component sharing no voxel with the reference mask for its region.
 
-The median peak probability inside a false positive is \textbf{0.96}, and inside a lesion we miss
-\textbf{0.55}. We detect 45\% of small lesions; 43\% of the misses never exceed a probability of
-0.10 anywhere inside them; and a fragment-healing check reattaches only 14\% of false positives to
-a reference lesion. The false positives are also spatially coherent, surviving Gaussian smoothing
-as solid blobs, and survive averaging across three independently trained networks because all
-three fire on them.
+The median peak probability inside a false positive is \textbf{0.96}, inside a lesion we miss
+\textbf{0.55}. We detect 45\% of small lesions; 43\% of the misses never exceed 0.10 anywhere
+inside them; a fragment-healing check reattaches only 14\% of false positives to a reference
+lesion. They also survive Gaussian smoothing as solid blobs, and survive averaging across three
+independently trained networks because all three fire on them.
 
-We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They
-intervene after decoding, inside the loss, or at the seed threshold, but all rank components by
-confidence or by a quantity monotone in it, and all failed. Two mechanisms are instructive: the
-per-component loss penalty collapsed into global under-confidence, and the learned veto never
-learned what a false positive looks like, because they look like lesions.
+Seven suppression strategies (Table~\ref{tab:suppression}) intervene after decoding, inside the
+loss, or at the seed threshold, but all rank components by confidence or a quantity monotone in
+it, and all failed. The per-component loss penalty collapsed into global under-confidence; the
+learned veto never learned what a false positive looks like, because they look like lesions.
 
 \begin{table}[t]
 \centering
