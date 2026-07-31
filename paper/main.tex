@@ -537,31 +537,28 @@ scale-space (smoothed) seed  & at every matched FP rate the plain threshold dete
 \end{tabular}
 \end{table}
 
-\subsection{The false positives are consistent with anatomical mimics}
+\subsection{What the false positives look like}
 
-Two explanations remained. Either these are anatomical \emph{mimics} (enhancing vessels, choroid
-plexus, dural structures) that a radiologist excludes using context the network lacks, or they
-are \emph{real metastases the annotators missed}, in which case part of the ceiling is not ours
-to move.
+Two explanations remained. Either these are normal structures that look like metastases on the
+scan (enhancing vessels, choroid plexus, dura), which a radiologist rules out using context the
+network lacks, or they are \emph{real metastases the annotators missed}, in which case part of
+the ceiling is not ours to move.
 
-Visual review of the 48 most confident false positives is more consistent with the mimic
-hypothesis than with the annotation-gap one, though it does not settle between them. They are
+Visual review of the 48 most confident false positives favours the first explanation. They are
 overwhelmingly small bright enhancing foci in three anatomically suspicious locations: at the
 cortical margin or dura, on or beside bright linear tubular structures consistent with vessels,
 and at the midline in falx and superior sagittal sinus territory. Few resemble what an annotation
 gap would look like, namely an isolated round parenchymal lesion in otherwise uniform white
 matter.
 
-That review was carried out by a non-radiologist on single axial slices, so we treated it as a
-hypothesis to test rather than a clinical assessment. Anatomical position is a genuinely different
-separation axis from confidence, so we measured it. Distance from the brain surface to the
+That review was carried out by a non-radiologist on single axial slices. Position in the brain is
+a different separation axis from confidence, so we measured it. Distance from the brain surface to the
 false-positive centroid has a median of 8.8\,mm against 11.2\,mm for reference lesion centroids,
 with almost fully overlapping interquartile ranges and an area under the ROC curve of
 \textbf{0.575}. False positives are only marginally more peripheral, and grey--white junction
 metastases, a common true presentation, sit at the same depth, so any filter aggressive enough to
-remove the mimics removes real lesions with them. The measurement is worth reporting because the
-hypothesis is attractive: making that route work would take a discriminant far sharper than raw
-surface proximity.
+remove these structures removes real lesions with them. Separating them this way would take a
+much sharper measure than distance from the brain surface.
 
 \subsection{What target-level intervention buys, and what it costs}
 
@@ -588,7 +585,7 @@ at a below-average value}, because small lesions are segmented less accurately t
 Under volumetric Dice these components would carry far less weight; under lesion-wise Dice each
 carries as much as any other lesion. A more
 aggressive variant added 156 further components averaging six voxels each and bought only
-$+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmingly mimics.
+$+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmingly not lesions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
@@ -597,8 +594,8 @@ $+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmi
 Our BraTS 2026 Task 1 submission reaches lesion-wise Dice of 0.725/0.766/0.746 with no novel
 architecture and no novel loss, using ensembling as false-positive dilution and hysteresis
 decoding. Our residual deficit is entirely in tumour detection $F_1$. Seven confidence-based suppression
-strategies failed to address it; the false positives are consistent with anatomical mimics but not
-separable by anatomical position (AUC 0.575); and lesion-wise Dice actively penalises recovering
+strategies failed to address it; the false positives look like normal structures but are not
+separable by position in the brain (AUC 0.575); and lesion-wise Dice actively penalises recovering
 additional small lesions. We therefore contribute, alongside the method, an error analysis that
 narrows where future effort is likely to be repaid. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
 
