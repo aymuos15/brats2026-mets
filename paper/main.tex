@@ -28,7 +28,7 @@
 
 \begin{document}
 
-\title{Inference-Time Decoding for Brain Metastasis\\ Segmentation: Ensembling, Hysteresis Thresholding,\\ and Post-processing Validation}
+\title{Inference-Time Decoding for Brain\\ Metastasis Segmentation}
 \titlerunning{Inference-Time Decoding for Brain Metastasis Segmentation}
 
 \author{%
@@ -66,11 +66,7 @@ exists from how far it extends, and never inspects component size. We then chara
 residual error. The median peak probability inside our false positives is 0.96 against 0.55
 inside the lesions we miss, and seven suppression strategies spanning the decode, the loss and
 the seed threshold all fail on this system, which suggests that ranking components by confidence
-is unpromising here and identifies where the remaining headroom is not. Finally, we report a
-validation failure that any team tuning post-processing on models trained without a held-out fold
-should expect: a cavity keep-rule measured at $+0.028$ lesion-wise Dice on our training-case
-harness delivered $-0.016$ on held-out validation, the wrong sign, because a memorised model
-rarely emits the spurious components such a rule would admit.
+is unpromising here and identifies where the remaining headroom is not.
 
 \keywords{Brain metastases \and Lesion-wise evaluation \and Ensembling \and Hysteresis
 thresholding \and False positives \and nnU-Net \and BraTS.}
@@ -110,10 +106,6 @@ became a label map. Our contributions are:
       suppression strategies spanning the decode, the loss and the seed threshold all failed on
       this system, and we report them in full because they are standard practice a reader would
       otherwise reasonably invest in (Section~\ref{sec:fp}).
-\item \textbf{A validation warning for lesion-wise post-processing.} Tuning post-processing on
-      cases the models were trained on is systematically optimistic, and for one component
-      keep-rule it reversed sign on held-out validation. We give the mechanism and quantify the
-      cost (Section~\ref{sec:harness}).
 \end{enumerate}
 
 \paragraph{What is and is not novel.} No component here is new: nnU-Net and its residual-encoder
@@ -121,7 +113,7 @@ variants are off the shelf~\cite{isensee2021nnunet,isensee2024resenc}, probabili
 standard, hysteresis dates to Canny~\cite{canny1986}, and our third member's objective follows
 blob loss~\cite{kofler2022blob,kundu2026instance}. We claim the empirical finding that this
 combination is where the performance is under lesion-wise scoring, together with the error
-analysis and the validation warning that follow from it.
+analysis that follows from it.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methods}
@@ -155,8 +147,7 @@ overwrite their parents. This is the \texttt{Dataset007} configuration in our re
 
 The submission averages three ResEnc-L models sharing the residual-encoder plans and the
 \texttt{3d\_fullres} configuration (Table~\ref{tab:members}), all trained on all available
-data without a held-out fold, a decision whose consequences we return to in
-Section~\ref{sec:harness}.
+data without a held-out fold.
 
 \begin{table}[t]
 \centering
@@ -375,8 +366,8 @@ compose into one label map by painting WT, TC, ET, then RC, so nested regions ov
 \label{fig:pipeline}
 \end{figure}
 
-Both thresholds were selected on the local harness of Section~\ref{sec:harness} and confirmed on
-the official validation set. All code, the exact decode, the container definition and the
+Both thresholds were selected on a local harness built around the official evaluation code over
+training cases, and confirmed on the official validation set. All code, the exact decode, the container definition and the
 diagnostic scripts behind every number in this paper are released. Inference is deterministic
 given the checkpoints; the submitted container bakes in all three and required 22.4\,s per case
 on an NVIDIA RTX 4090. That figure is end-to-end and covers preprocessing, the three sliding-window
@@ -615,37 +606,6 @@ carries as much as any other lesion. A more
 aggressive variant added 156 further components averaging six voxels each and bought only
 $+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmingly mimics.
 
-\subsection{A validation protocol for lesion-wise post-processing}
-\label{sec:harness}
-
-We built a local harness around the official evaluation code over 80 reference tumour cases and
-100 cavity cases, gated on reproducing the relative ordering of our own previously scored
-submissions. It replaced blind two-submissions-per-day guessing, during which $F_1$ moved
-$+0.001$ in ten days, and selected our best submission from 28 candidate decodes at no
-submission cost. It also revealed a boundary condition that applies to any team tuning post-processing on models
-trained without a held-out fold, and which we state here as a protocol.
-
-Every model was trained on these cases. For decodes (the same probabilities post-processed
-differently) this is least damaging, because memorisation is common-mode and largely cancels from
-a \emph{ranking} of candidates. It is worst for a rule whose whole effect is to admit components
-the model would otherwise not have emitted: on memorised cases it rarely emits a spurious
-component, so a ``keep more components'' rule appears free, while on unseen data the same rule
-admits them. \textbf{Memorisation suppresses precisely the false positives that the rule would
-let in, so the harness is structurally blind to its cost.}
-
-The effect is not small. A cavity keep-rule measured locally at $+0.028$ lesion-wise Dice
-delivered $-0.016$ on the validation set: the wrong \emph{sign}, not merely the wrong magnitude.
-More broadly the harness consistently overestimated the size of the gains it predicted, by
-roughly a factor of three.
-
-We state this as an empirical warning, not a rule. It is tempting to say thresholds and fusion
-weights are safe offline because they change values rather than counts, but they too create,
-remove, split and merge components, and lesion-wise scoring charges for every one. What we can
-report is narrower: our harness was not an unbiased validation set; rankings still transferred
-acceptably for the threshold and fusion settings we tested, which made it useful; and one
-count-expanding keep-rule reversed sign. Treat every offline decision as provisional, and be most
-suspicious of rules admitting components the model would not otherwise emit.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 \label{sec:conclusion}
@@ -656,8 +616,7 @@ decoding. Our residual deficit is entirely in tumour detection $F_1$. Seven conf
 strategies failed to address it; the false positives are consistent with anatomical mimics but not
 separable by anatomical position (AUC 0.575); and lesion-wise Dice actively penalises recovering
 additional small lesions. We therefore contribute, alongside the method, an error analysis that
-narrows where future effort is likely to be repaid and a warning about which offline
-post-processing experiments transfer. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
+narrows where future effort is likely to be repaid. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
 
 \subsubsection{Acknowledgements.} Data used in this publication were obtained as part of the
 Challenge project through Synapse ID (syn74274097).
