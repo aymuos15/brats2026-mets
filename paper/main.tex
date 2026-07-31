@@ -388,14 +388,15 @@ organisers' evaluation code over 80 training cases. Two caveats bound its use. E
 trained on these cases without a held-out fold, so the figures describe memorised data and are
 not comparable with Table~\ref{tab:final}. The harness scored the pipeline at
 $t_{\mathrm{lo}}=0.30$, the configuration of row 6 of Table~\ref{tab:ablation}, rather than the
-submitted $t_{\mathrm{lo}}=0.25$; and it covers the tumour regions only, since the cavity was
-evaluated on a separate set of cavity-bearing cases.
+submitted $t_{\mathrm{lo}}=0.25$. The cavity was scored separately, on 100 cavity-bearing training
+cases rather than the 80 used for the tumour regions.
 
 \begin{table}[t]
 \centering
-\caption{Training-set performance: three-model fusion, hysteresis $t_{\mathrm{lo}}=0.30$,
-$t_{\mathrm{hi}}=0.70$, official evaluation code, 80 training cases. These cases were in training,
-so the values are optimistic.}
+\caption{Training-set performance under the official evaluation code: three-model fusion,
+hysteresis $t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$, over 80 training cases; the cavity from
+the CC-loss member at 0.5 with keep-largest, over 100 cavity-bearing training cases. All were
+in training, so the values are optimistic.}
 \label{tab:train}
 \begin{tabular}{@{}lccc@{}}
 \toprule
@@ -406,7 +407,9 @@ Lesion-wise NSD      & 0.753 & 0.812 & 0.804 \\
 Small-instance $F_1$ & 0.424 & 0.483 & 0.472 \\
 \bottomrule
 \end{tabular}\\[2pt]
-{\footnotesize Per case: 1.83 true positives, 0.85 false positives, 2.54 missed lesions.}
+{\footnotesize Tumour, per case: 1.83 true positives, 0.85 false positives, 2.54 missed lesions.\\
+Resection cavity: lesion-wise Dice 0.712, with 0.96 true positives and 0.01 false positives per
+case.}
 \end{table}
 
 \subsection{Ablation}
