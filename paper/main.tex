@@ -239,38 +239,74 @@ example.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[
-  font=\scriptsize,
-  box/.style   = {draw=black!55, rounded corners=2pt, align=center,
-                  minimum height=7mm, inner xsep=4pt, fill=white},
-  op/.style    = {box, fill=blue!6, draw=blue!45},
-  keep/.style  = {box, fill=green!8, draw=green!45!black},
-  drop/.style  = {box, fill=red!5, draw=red!40},
-  ar/.style    = {-{Latex[length=4pt,width=3.6pt]}, draw=black!60},
-]
+\begin{tikzpicture}[xscale=0.78, yscale=2.55]
 
-\node[op]   (thr)  at (0,0)      {components of\\[-1pt] $\bar{p}_r > t_{\mathrm{lo}} = 0.25$};
-\node[box]  (cand) at (3.05,0)   {4 candidates, peaks\\[-1pt] $0.92$ \; $0.52$ \; $0.35$ \; $0.88$};
-\node[op]   (test) at (6.15,0)   {is the peak\\[-1pt] $> t_{\mathrm{hi}} = 0.70$?};
-\node[keep] (keep) at (8.70,0.62) {\textbf{2 kept}, whole at\\[-1pt] their $t_{\mathrm{lo}}$ extent};
-\node[drop] (drop) at (8.70,-0.62){\textbf{2 deleted}\\[-1pt] entirely};
+% ---- the two thresholds ----------------------------------------------------
+\fill[blue!5] (0,0.25) rectangle (9.55,0.70);
+\draw[densely dashed,red!70!black]  (0,0.70) -- (9.55,0.70);
+\draw[densely dashed,blue!70!black] (0,0.25) -- (9.55,0.25);
+\node[font=\scriptsize,red!60!black,anchor=west]  at (9.70,0.70)
+  {$t_{\mathrm{hi}}=0.70$: \emph{is it there?}};
+\node[font=\scriptsize,blue!60!black,anchor=west] at (9.70,0.25)
+  {$t_{\mathrm{lo}}=0.25$: \emph{how far?}};
 
-\draw[ar] (thr)  -- (cand);
-\draw[ar] (cand) -- (test);
-\draw[ar] (test.east) -- ++(0.25,0) |- (keep.west);
-\draw[ar] (test.east) -- ++(0.25,0) |- (drop.west);
-\node[font=\scriptsize,anchor=east,inner sep=1.5pt] at (7.32,0.40) {yes};
-\node[font=\scriptsize,anchor=east,inner sep=1.5pt] at (7.32,-0.40) {no};
+% ---- axes ------------------------------------------------------------------
+\draw[->,gray!70] (0,0) -- (9.95,0);
+\draw[->,gray!70] (0,0) -- (0,1.05);
+\foreach \y/\l in {0/0, 0.5/0.5, 1.0/1.0}
+  \draw[gray!70] (-0.06,\y) -- (0,\y) node[left,black,font=\scriptsize,xshift=-2pt] {\l};
+\node[rotate=90,font=\scriptsize,anchor=south] at (-0.72,0.5) {score};
+
+% ---- the scores ------------------------------------------------------------
+\draw[very thick,black!80] plot[smooth,tension=0.7] coordinates {
+  (0.30,0.02) (0.70,0.05) (1.00,0.13) (1.20,0.25) (1.55,0.60) (2.00,0.92)
+  (2.45,0.60) (2.80,0.25) (3.00,0.13) (3.35,0.05)
+  (3.50,0.08) (3.75,0.25) (4.15,0.44) (4.55,0.52) (4.95,0.44) (5.35,0.25)
+  (5.65,0.10) (5.95,0.05)
+  (6.15,0.06) (6.30,0.25) (6.45,0.33) (6.60,0.35) (6.75,0.33) (6.90,0.25)
+  (7.05,0.06)
+  (7.60,0.03) (8.15,0.04) (8.30,0.25) (8.45,0.62) (8.60,0.88) (8.75,0.62)
+  (8.90,0.25) (9.05,0.05) (9.40,0.02) };
+
+% ---- step 2: the single best voxel in each blob ----------------------------
+\foreach \x/\y/\c in {2.00/0.92/{green!45!black}, 4.55/0.52/{red!65!black},
+                      6.60/0.35/{red!65!black},   8.60/0.88/{green!45!black}}
+  \node[circle,fill=\c,inner sep=1.5pt] at (\x,\y) {};
+\node[font=\scriptsize,green!35!black,anchor=south] at (2.00,0.95) {$0.92$};
+\node[font=\scriptsize,red!55!black,anchor=south]   at (4.55,0.55) {$0.52$};
+\node[font=\scriptsize,red!55!black,anchor=south]   at (6.60,0.38) {$0.35$};
+\node[font=\scriptsize,green!35!black,anchor=south] at (8.60,0.91) {$0.88$};
+
+% ---- step 1: the blobs the generous threshold proposes ---------------------
+\fill[black!35] (1.20,-0.17) rectangle (2.80,-0.11);
+\fill[black!35] (3.75,-0.17) rectangle (5.35,-0.11);
+\fill[black!35] (6.30,-0.17) rectangle (6.90,-0.11);
+\fill[black!35] (8.30,-0.17) rectangle (8.90,-0.11);
+\node[font=\scriptsize,black!60,anchor=west] at (9.70,-0.14)
+  {\textbf{1.} blobs at $t_{\mathrm{lo}}$};
+
+% ---- step 3: keep or delete each blob whole --------------------------------
+\fill[green!45!black] (1.20,-0.41) rectangle (2.80,-0.35);
+\draw[red!45,densely dashed] (3.75,-0.41) rectangle (5.35,-0.35);
+\draw[red!45,densely dashed] (6.30,-0.41) rectangle (6.90,-0.35);
+\fill[green!45!black] (8.30,-0.41) rectangle (8.90,-0.35);
+\node[font=\scriptsize,black!60,anchor=west] at (9.70,-0.38)
+  {\textbf{3.} kept, or deleted whole};
+
+\node[font=\scriptsize,black!60,anchor=west] at (9.70,0.95)
+  {\textbf{2.} best voxel in each blob};
 
 \end{tikzpicture}
-\caption{The decode, on a worked example. The two thresholds answer different questions and are
-asked in order. $t_{\mathrm{lo}}$ proposes candidates and fixes how far each one extends;
-$t_{\mathrm{hi}}$ then decides which of them exist. A candidate whose peak falls between the two
-thresholds is deleted in full, however large it is, because nothing inside it ever clears
-$t_{\mathrm{hi}}$; a candidate that clears it is kept in full, however small it is. Neither width
-nor mean probability is used at any point, which is what separates this rule from the component
-filters of Section~\ref{sec:fp}. The four peaks are an example for illustration, not measured
-values: our residual false positives peak at $0.96$ and would pass $t_{\mathrm{hi}}$, which is why
+\caption{The decode in three steps. \textbf{1.}~Mark every voxel scoring above the generous
+threshold $t_{\mathrm{lo}}$; this proposes four blobs, each already at its full width.
+\textbf{2.}~In each blob find the single highest-scoring voxel (dots) and ignore everything else
+about it. \textbf{3.}~If that one voxel beats the strict threshold $t_{\mathrm{hi}}$, keep the
+blob \emph{entire}; if it does not, delete the blob \emph{entire} (dashed). The strict threshold
+decides whether anything is there, the generous one decides where it stops, and one voxel is
+enough to answer the first. So the blob peaking at $0.52$ goes even though it is the widest, and
+the blob peaking at $0.88$ stays even though it is among the narrowest: how big a blob is, and how
+confident it is on average, are never consulted. The four scores are illustrative, not measured;
+our residual false positives peak at $0.96$ and would survive this test, which is why
 Section~\ref{sec:fp} is needed.}
 \label{fig:hyst}
 \end{figure}
