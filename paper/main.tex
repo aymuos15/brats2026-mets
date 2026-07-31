@@ -114,8 +114,8 @@ became a label map. Our contributions are:
 \label{sec:data}
 
 We use the BraTS-MET 2026 training set: 1295 multi-site cases, each with four co-registered,
-skull-stripped sequences (T1, T1-Gd, T2, T2-FLAIR) supplied in \emph{native} space, so voxel
-spacing and array dimensions vary across the cohort. Reference labels comprise non-enhancing
+skull-stripped sequences (T1, T1-Gd, T2, T2-FLAIR) in \emph{native} space, so voxel spacing and
+array dimensions vary across the cohort. Reference labels comprise non-enhancing
 tumour core (NETC), surrounding non-enhancing FLAIR hyperintensity (SNFH), enhancing tumour (ET)
 and resection cavity (RC). Region prevalence is markedly imbalanced (54\% NETC, 89\% SNFH,
 96\% ET and only 13\% RC), which is the principal reason the RC channel is our weakest and is
@@ -135,9 +135,8 @@ overwrite their parents. This is the \texttt{Dataset007} configuration in our re
 \subsection{Ensemble members}
 \label{sec:members}
 
-The submission averages three ResEnc-L models sharing the residual-encoder plans and the
-\texttt{3d\_fullres} configuration (Table~\ref{tab:members}), all trained on all available
-data without a held-out fold.
+The submission averages three ResEnc-L models (Table~\ref{tab:members}), all trained on all
+available data without a held-out fold.
 
 \begin{table}[t]
 \centering
@@ -213,9 +212,7 @@ components of a binary mask, the decoded region is
 \hat{M} \;=\; \bigcup \Big\{\, c \in \mathcal{C}\big(\bar{p}_r > t_{\mathrm{lo}}\big) \;:\;
 \max_{x \in c} \bar{p}_r(x) > t_{\mathrm{hi}} \,\Big\},
 \]
-that is, every component of the permissive mask whose \emph{peak} clears the strict threshold is
-retained \emph{at its full permissive extent}. Figure~\ref{fig:hyst} works the rule through on an
-example.
+Figure~\ref{fig:hyst} works the rule through on an example.
 
 \begin{figure}[t]
 \centering
@@ -392,8 +389,8 @@ about why it resists the obvious fixes.
 \begin{table}[t]
 \centering
 \caption{Development trace, in the order the changes were made. All rows are our own submissions
-scored on the official 179-case validation set and are therefore directly comparable, but each
-row-to-row effect is conditional on the rows above it; this is not a factorial ablation.}
+scored on the official 179-case validation set, so each row-to-row effect is conditional on the
+rows above it; this is not a factorial ablation.}
 \label{tab:ablation}
 \begin{tabular}{@{}llcc@{}}
 \toprule
@@ -480,10 +477,9 @@ learned what a false positive looks like, because they look like lesions.
 
 \begin{table}[t]
 \centering
-\caption{Seven suppression strategies evaluated, grouped by the quantity they rank components on.
-All three families reduce to ordering components by confidence, or by something monotone in it,
-and our false positives sit at the confident end. The failure is shared across the decode, loss
-and threshold levels.}
+\caption{Seven suppression strategies, grouped by the quantity they rank components on. All three
+families reduce to ordering by confidence or something monotone in it, and our false positives
+sit at the confident end.}
 \label{tab:suppression}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -534,17 +530,18 @@ alone this lifted tumour $F_1$ by $+0.012/+0.014/+0.013$. Grafting only the addi
 non-overlapping detections onto our best submission raised $F_1$ by as much as
 $+0.034/+0.027/+0.031$ but lowered lesion-wise Dice by $-0.010/-0.012/-0.012$, a negative net
 effect across the official metrics: small lesions are segmented less accurately than large ones,
-so each one recovered enters the per-lesion Dice average below its mean, and under lesion-wise
-scoring it carries the same weight as any other lesion. A more aggressive variant added 156
+so each one recovered enters the per-lesion Dice average below its mean while counting as a full
+lesion. A more aggressive variant added 156
 further components averaging six voxels each for $+0.003/+0.004/+0.005$ $F_1$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 \label{sec:conclusion}
 
-Our BraTS 2026 Task 1 submission reaches lesion-wise Dice of 0.725/0.766/0.746 with no novel
-architecture and no novel loss, using ensembling as false-positive dilution and hysteresis
-decoding. The residual deficit is in tumour detection $F_1$, which seven confidence-based
+Our BraTS 2026 Task 1 submission reaches lesion-wise Dice of 0.725/0.766/0.746 from three stock
+nnU-Net ResEnc-L (\texttt{3d\_fullres}) networks trained with Dice plus top-10\% BCE, the third
+fine-tuned with an auxiliary blob loss at $\lambda=0.2$, using ensembling as false-positive
+dilution and hysteresis decoding. The residual deficit is in tumour detection $F_1$, which seven confidence-based
 suppression strategies failed to address. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
 
 \subsubsection{Acknowledgements.} Data used in this publication were obtained as part of the
