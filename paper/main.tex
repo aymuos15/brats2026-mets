@@ -493,13 +493,9 @@ averaging across three independently trained networks because all three fire on 
 We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They differ
 in where they intervene (after decoding, inside the loss, or at the seed threshold), but all three
 families reduce to the same operation, ranking components by confidence or by a quantity monotone
-in it, and all three failed for that shared reason. Because they span the decode, the loss and
-the threshold, the failure is unlikely to be an artefact of one implementation. We do not claim
-more than that: seven methods on one system cannot rule out every confidence-aware approach, and
-the peak-probability comparison above is itself conditioned on the decoding threshold, so it
-shows that raising the threshold will not fix both error types rather than that confidence is
-inverted in general. We report them in full because several are standard practice a reader would
-otherwise reasonably invest in. Two mechanisms are instructive: the per-component loss penalty collapsed into global
+in it, and all three failed for that shared reason. All seven were evaluated on this system, and
+the peak-probability comparison above was measured at a fixed decode. Two mechanisms are
+instructive: the per-component loss penalty collapsed into global
 under-confidence, and the learned veto never learned what a false positive looks like, for the
 reason this section documents: they look like lesions.
 
@@ -508,8 +504,7 @@ reason this section documents: they look like lesions.
 \caption{Seven suppression strategies evaluated, grouped by the quantity they rank components on.
 All three families reduce to ordering components by confidence, or by something monotone in it,
 and our false positives sit at the confident end. The failure is shared across the decode, loss
-and threshold levels, which is what makes it a property of the ranking quantity on this system
-rather than of any one implementation.}
+and threshold levels.}
 \label{tab:suppression}
 \small
 \setlength{\tabcolsep}{4pt}
