@@ -272,8 +272,8 @@ that matter.
 
 % ---- component names -------------------------------------------------------
 \node[font=\scriptsize,anchor=south] at (2.00,0.95) {large lesion};
-\node[font=\scriptsize,anchor=south] at (4.55,0.56) {diffuse region};
-\node[font=\scriptsize,anchor=south] at (6.60,0.38) {noise speck};
+\node[font=\scriptsize,anchor=south] at (4.55,0.56) {wide, low peak};
+\node[font=\scriptsize,anchor=south] at (6.60,0.38) {narrow, low peak};
 \node[font=\scriptsize,anchor=south] at (8.60,0.91) {small lesion};
 
 % ---- resulting masks, one strip per rule -----------------------------------
@@ -281,7 +281,7 @@ that matter.
 \fill[black!45] (1.69,-0.19) rectangle (2.31,-0.13);
 \fill[black!45] (8.50,-0.19) rectangle (8.70,-0.13);
 \node[font=\scriptsize,black!60,anchor=west] at (9.70,-0.16)
-  {$t_{\mathrm{hi}}$ only: margins amputated};
+  {$t_{\mathrm{hi}}$ only: lesions cut short};
 
 % strip 2: threshold at t_lo only -- correct extents, but the junk comes too
 \fill[red!65!black] (1.20,-0.37) rectangle (2.80,-0.31);
@@ -289,25 +289,27 @@ that matter.
 \fill[red!65!black] (6.30,-0.37) rectangle (6.90,-0.31);
 \fill[red!65!black] (8.30,-0.37) rectangle (8.90,-0.31);
 \node[font=\scriptsize,red!55!black,anchor=west] at (9.70,-0.34)
-  {$t_{\mathrm{lo}}$ only: junk admitted};
+  {$t_{\mathrm{lo}}$ only: low peaks kept};
 
 % strip 3: hysteresis -- extents of strip 2, existence test of strip 1
 \fill[green!45!black] (1.20,-0.55) rectangle (2.80,-0.49);
 \fill[green!45!black] (8.30,-0.55) rectangle (8.90,-0.49);
 \node[font=\scriptsize,green!35!black,anchor=west] at (9.70,-0.52)
-  {\textbf{hysteresis}: both right};
+  {\textbf{hysteresis}: neither problem};
 
 \end{tikzpicture}
-\caption{Hysteresis decoding on a 1-D slice through the fused probability map. The three strips
-are the masks each rule produces. A single strict threshold (grey) rejects the junk but keeps only
-the tips of the two lesions. A single permissive threshold (red) recovers their full extent but
-admits the diffuse region and the speck as well. Hysteresis (green) takes the extents of the
-permissive mask and the existence test of the strict one: a component survives only if it contains
-a voxel above $t_{\mathrm{hi}}$, and then survives \emph{whole}. The diffuse region and the speck
-lie entirely inside the shaded band, so neither contains such a voxel and both vanish, however wide
-they are; the small lesion is drawn the same width as the speck and survives on its peak alone.
-Size and mean probability are never consulted, which is what separates this rule from the
-component filters of Section~\ref{sec:fp}.}
+\caption{Hysteresis decoding on a 1-D slice through the fused probability map. The four components
+are drawn to cross two widths with two peak heights; they are illustrative, not measured. The
+three strips are the masks each rule produces. A single strict threshold (grey) removes both
+low-peak components but keeps only the tips of the two lesions. A single permissive threshold
+(red) recovers the full extent of the lesions but keeps the low-peak components too. Hysteresis
+(green) takes the extents of the permissive mask and the existence test of the strict one: a
+component is kept only if it contains a voxel above $t_{\mathrm{hi}}$, and is then kept
+\emph{whole}. Both low-peak components lie entirely inside the shaded band, so neither contains
+such a voxel and both go, whatever their width; the small lesion is drawn as narrow as one of them
+and is kept on its peak alone. Width and mean probability are never used. Note that this is not
+how our residual false positives behave: they peak at 0.96 and would pass $t_{\mathrm{hi}}$, which
+is why Section~\ref{sec:fp} is needed.}
 \label{fig:hyst}
 \end{figure}
 
