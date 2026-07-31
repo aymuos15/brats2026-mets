@@ -472,32 +472,25 @@ tumour, which brackets the useful range of the extent threshold at $t_{\mathrm{l
 \subsection{Confidence is inverted with respect to correctness}
 \label{sec:fp}
 
-We measured this on 80 reference cases, per region over WT, TC and ET and then pooled. A
-\emph{small} lesion is a reference component below the official 20\,mm$^3$ cut, the population
-small-instance $F_1$ scores; a \emph{false positive} is a decoded component sharing no voxel with
-the reference mask for its region; a small lesion counts as detected if any decoded voxel falls
-inside it. Probabilities are read from the fused map $\bar{p}_r$, components labelled with
-26-connectivity, under the then-current decode $t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$.
-On that basis the median peak probability inside a false positive is \textbf{0.96}, while inside
-a lesion we miss it is \textbf{0.55}. We detect 45\% of small lesions; 43\% of the misses are ones
-the model is wholly blind to, never exceeding a probability of 0.10 anywhere inside them; and 86\%
-of false positives are not recoverable as fragments of a reference lesion, a fragment-healing
-check reattaching only the remaining 14\%.
+Measured on 80 training cases, per region over WT, TC and ET and then pooled, at the then-current
+decode $t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$. A \emph{small} lesion is a reference
+component below the official 20\,mm$^3$ cut; a \emph{false positive} is a decoded component
+sharing no voxel with the reference mask for its region; a small lesion counts as detected if any
+decoded voxel falls inside it. Components are labelled with 26-connectivity and probabilities read
+from the fused map $\bar{p}_r$.
 
+The median peak probability inside a false positive is \textbf{0.96}, and inside a lesion we miss
+\textbf{0.55}. We detect 45\% of small lesions; 43\% of the misses never exceed a probability of
+0.10 anywhere inside them; and a fragment-healing check reattaches only 14\% of false positives to
+a reference lesion. The false positives are also spatially coherent, surviving Gaussian smoothing
+as solid blobs, and survive averaging across three independently trained networks because all
+three fire on them.
 
-\textbf{The model is more confident about its mistakes than about the lesions it finds.} Its
-false positives are additionally spatially coherent (they survive Gaussian smoothing as solid
-blobs rather than dissolving as noise would), isolated, and \emph{corroborated}: they survive
-averaging across three independently trained networks because all three fire on them.
-
-We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They differ
-in where they intervene (after decoding, inside the loss, or at the seed threshold), but all three
-families reduce to the same operation, ranking components by confidence or by a quantity monotone
-in it, and all three failed for that shared reason. All seven were evaluated on this system, and
-the peak-probability comparison above was measured at a fixed decode. Two mechanisms are
-instructive: the per-component loss penalty collapsed into global
-under-confidence, and the learned veto never learned what a false positive looks like, for the
-reason this section documents: they look like lesions.
+We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They
+intervene after decoding, inside the loss, or at the seed threshold, but all rank components by
+confidence or by a quantity monotone in it, and all failed. Two mechanisms are instructive: the
+per-component loss penalty collapsed into global under-confidence, and the learned veto never
+learned what a false positive looks like, because they look like lesions.
 
 \begin{table}[t]
 \centering
