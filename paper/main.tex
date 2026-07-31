@@ -234,82 +234,44 @@ components of a binary mask, the decoded region is
 \max_{x \in c} \bar{p}_r(x) > t_{\mathrm{hi}} \,\Big\},
 \]
 that is, every component of the permissive mask whose \emph{peak} clears the strict threshold is
-retained \emph{at its full permissive extent}. Figure~\ref{fig:hyst} illustrates the three cases
-that matter.
+retained \emph{at its full permissive extent}. Figure~\ref{fig:hyst} works the rule through on an
+example.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[xscale=0.78, yscale=2.70]
+\begin{tikzpicture}[
+  font=\scriptsize,
+  box/.style   = {draw=black!55, rounded corners=2pt, align=center,
+                  minimum height=7mm, inner xsep=4pt, fill=white},
+  op/.style    = {box, fill=blue!6, draw=blue!45},
+  keep/.style  = {box, fill=green!8, draw=green!45!black},
+  drop/.style  = {box, fill=red!5, draw=red!40},
+  ar/.style    = {-{Latex[length=4pt,width=3.6pt]}, draw=black!60},
+]
 
-% ---- threshold band --------------------------------------------------------
-\fill[blue!5]  (0,0.25) rectangle (9.55,0.70);
+\node[op]   (thr)  at (0,0)      {components of\\[-1pt] $\bar{p}_r > t_{\mathrm{lo}} = 0.25$};
+\node[box]  (cand) at (3.05,0)   {4 candidates, peaks\\[-1pt] $0.92$ \; $0.52$ \; $0.35$ \; $0.88$};
+\node[op]   (test) at (6.15,0)   {is the peak\\[-1pt] $> t_{\mathrm{hi}} = 0.70$?};
+\node[keep] (keep) at (8.70,0.62) {\textbf{2 kept}, whole at\\[-1pt] their $t_{\mathrm{lo}}$ extent};
+\node[drop] (drop) at (8.70,-0.62){\textbf{2 deleted}\\[-1pt] entirely};
 
-% ---- axes ------------------------------------------------------------------
-\draw[->,gray!70] (0,0) -- (9.95,0) node[right,black,font=\scriptsize,xshift=1pt] {position};
-\draw[->,gray!70] (0,0) -- (0,1.05);
-\foreach \y/\l in {0/0, 0.5/0.5, 1.0/1.0}
-  \draw[gray!70] (-0.06,\y) -- (0,\y) node[left,black,font=\scriptsize,xshift=-2pt] {\l};
-\node[rotate=90,font=\scriptsize,anchor=south] at (-0.72,0.5) {$\bar{p}_r(x)$};
-
-% ---- thresholds (labelled to the right, clear of the profile) --------------
-\draw[densely dashed,red!70!black]  (0,0.70) -- (9.55,0.70);
-\draw[densely dashed,blue!70!black] (0,0.25) -- (9.55,0.25);
-\node[font=\scriptsize,red!60!black,anchor=west]
-  at (9.70,0.70) {$t_{\mathrm{hi}}=0.70$ \,(existence)};
-\node[font=\scriptsize,blue!60!black,anchor=west]
-  at (9.70,0.25) {$t_{\mathrm{lo}}=0.25$ \,(extent)};
-
-% ---- probability profile ---------------------------------------------------
-\draw[very thick,black!80] plot[smooth,tension=0.7] coordinates {
-  (0.30,0.02) (0.70,0.05) (1.00,0.13) (1.20,0.25) (1.55,0.60) (2.00,0.92)
-  (2.45,0.60) (2.80,0.25) (3.00,0.13) (3.35,0.05)
-  (3.50,0.08) (3.75,0.25) (4.15,0.44) (4.55,0.52) (4.95,0.44) (5.35,0.25)
-  (5.65,0.10) (5.95,0.05)
-  (6.15,0.06) (6.30,0.25) (6.45,0.33) (6.60,0.35) (6.75,0.33) (6.90,0.25)
-  (7.05,0.06)
-  (7.60,0.03) (8.15,0.04) (8.30,0.25) (8.45,0.62) (8.60,0.88) (8.75,0.62)
-  (8.90,0.25) (9.05,0.05) (9.40,0.02) };
-
-% ---- component names -------------------------------------------------------
-\node[font=\scriptsize,anchor=south] at (2.00,0.95) {large lesion};
-\node[font=\scriptsize,anchor=south] at (4.55,0.56) {wide, low peak};
-\node[font=\scriptsize,anchor=south] at (6.60,0.38) {narrow, low peak};
-\node[font=\scriptsize,anchor=south] at (8.60,0.91) {small lesion};
-
-% ---- resulting masks, one strip per rule -----------------------------------
-% strip 1: threshold at t_hi only -- correct rejections, but both lesions truncated
-\fill[black!45] (1.69,-0.19) rectangle (2.31,-0.13);
-\fill[black!45] (8.50,-0.19) rectangle (8.70,-0.13);
-\node[font=\scriptsize,black!60,anchor=west] at (9.70,-0.16)
-  {$t_{\mathrm{hi}}$ only: lesions cut short};
-
-% strip 2: threshold at t_lo only -- correct extents, but the junk comes too
-\fill[red!65!black] (1.20,-0.37) rectangle (2.80,-0.31);
-\fill[red!65!black] (3.75,-0.37) rectangle (5.35,-0.31);
-\fill[red!65!black] (6.30,-0.37) rectangle (6.90,-0.31);
-\fill[red!65!black] (8.30,-0.37) rectangle (8.90,-0.31);
-\node[font=\scriptsize,red!55!black,anchor=west] at (9.70,-0.34)
-  {$t_{\mathrm{lo}}$ only: low peaks kept};
-
-% strip 3: hysteresis -- extents of strip 2, existence test of strip 1
-\fill[green!45!black] (1.20,-0.55) rectangle (2.80,-0.49);
-\fill[green!45!black] (8.30,-0.55) rectangle (8.90,-0.49);
-\node[font=\scriptsize,green!35!black,anchor=west] at (9.70,-0.52)
-  {\textbf{hysteresis}: neither problem};
+\draw[ar] (thr)  -- (cand);
+\draw[ar] (cand) -- (test);
+\draw[ar] (test.east) -- ++(0.25,0) |- (keep.west);
+\draw[ar] (test.east) -- ++(0.25,0) |- (drop.west);
+\node[font=\scriptsize,anchor=east,inner sep=1.5pt] at (7.32,0.40) {yes};
+\node[font=\scriptsize,anchor=east,inner sep=1.5pt] at (7.32,-0.40) {no};
 
 \end{tikzpicture}
-\caption{Hysteresis decoding on a 1-D slice through the fused probability map. The four components
-are drawn to cross two widths with two peak heights; they are illustrative, not measured. The
-three strips are the masks each rule produces. A single strict threshold (grey) removes both
-low-peak components but keeps only the tips of the two lesions. A single permissive threshold
-(red) recovers the full extent of the lesions but keeps the low-peak components too. Hysteresis
-(green) takes the extents of the permissive mask and the existence test of the strict one: a
-component is kept only if it contains a voxel above $t_{\mathrm{hi}}$, and is then kept
-\emph{whole}. Both low-peak components lie entirely inside the shaded band, so neither contains
-such a voxel and both go, whatever their width; the small lesion is drawn as narrow as one of them
-and is kept on its peak alone. Width and mean probability are never used. Note that this is not
-how our residual false positives behave: they peak at 0.96 and would pass $t_{\mathrm{hi}}$, which
-is why Section~\ref{sec:fp} is needed.}
+\caption{The decode, on a worked example. The two thresholds answer different questions and are
+asked in order. $t_{\mathrm{lo}}$ proposes candidates and fixes how far each one extends;
+$t_{\mathrm{hi}}$ then decides which of them exist. A candidate whose peak falls between the two
+thresholds is deleted in full, however large it is, because nothing inside it ever clears
+$t_{\mathrm{hi}}$; a candidate that clears it is kept in full, however small it is. Neither width
+nor mean probability is used at any point, which is what separates this rule from the component
+filters of Section~\ref{sec:fp}. The four peaks are an example for illustration, not measured
+values: our residual false positives peak at $0.96$ and would pass $t_{\mathrm{hi}}$, which is why
+Section~\ref{sec:fp} is needed.}
 \label{fig:hyst}
 \end{figure}
 
