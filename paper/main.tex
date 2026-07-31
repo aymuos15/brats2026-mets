@@ -199,8 +199,10 @@ that does so, and the reason the ensemble is not merely a variance-reduction con
 
 The resection cavity is treated separately. RC is a single large structure for which ensembling
 gave no benefit: a two-model RC average moved lesion-wise Dice from 0.630 to 0.628, within noise.
-We therefore take RC from the CC-loss member alone, threshold at 0.5, and retain only the largest
-connected component.
+We therefore take the RC channel from the CC-loss member alone, with no ensembling and no
+hysteresis, and assign RC to every voxel where that channel is at least 0.5. RC is painted after
+WT, TC and ET and overwrites them. We then keep only the largest RC component and set every other
+RC voxel to background, rather than restoring the label it overwrote.
 
 \subsection{Hysteresis decoding}
 \label{sec:hysteresis}
@@ -211,7 +213,7 @@ real lesion at its margin, because the tumour boundary in these probability maps
 roughly 0.30 and 0.60. No single value is correct for both.
 
 Hysteresis thresholding, borrowed from classical edge detection~\cite{canny1986}, splits the two
-decisions across thresholds $t_{\mathrm{lo}} < t_{\mathrm{hi}}$. Writing $\mathcal{C}(\cdot)$ for the set of 26-connected
+decisions across thresholds $t_{\mathrm{lo}} < t_{\mathrm{hi}}$. Writing $\mathcal{C}(\cdot)$ for the set of 6-connected
 components of a binary mask, the decoded region is
 \[
 \hat{M} \;=\; \bigcup \Big\{\, c \in \mathcal{C}\big(\bar{p}_r > t_{\mathrm{lo}}\big) \;:\;
