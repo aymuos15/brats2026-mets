@@ -398,13 +398,6 @@ instances are still missed or spuriously introduced, even where the lesions we d
 delineated. Detection, not delineation, is the residual problem, and the rest of this paper is
 about why it resists the obvious fixes.
 
-\paragraph{On uncertainty and significance.} We report point estimates without confidence
-intervals. The challenge server returns only aggregate scores, withholding per-case metrics and
-reference labels, so dispersion and paired significance tests cannot be computed there at all;
-where we control the evaluation we report per-case counts instead. The aggregates are
-deterministic, so differences between them are exact, but we cannot say how much of a small
-difference would survive a different cohort.
-
 \subsection{Ablation}
 \label{sec:ablation}
 
