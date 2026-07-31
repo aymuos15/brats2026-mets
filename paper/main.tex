@@ -85,11 +85,10 @@ components~\cite{grosskopf2026matching}, each lesion contributes equally to the 
 averages irrespective of volume, and an unmatched prediction is penalised twice: once as a zero
 appended to the lesion-wise Dice average, and again in the denominator of small-instance $F_1$.
 
-This inverts the usual economics. Under volumetric Dice a five-voxel false positive is
-negligible; under lesion-wise scoring it costs as much as missing a large lesion. Conversely, a
-method that suppresses small components to protect Dice destroys the detection metric the task
-exists to measure. Over the operating range that matters the two objectives are not merely
-distinct but opposed, and we quantify that opposition in Section~\ref{sec:frontier}.
+Under volumetric Dice a five-voxel false positive is negligible; under lesion-wise scoring it
+costs as much as missing a large lesion. Conversely, a method that suppresses small components to
+protect Dice destroys the detection metric the task exists to measure. We quantify that
+opposition in Section~\ref{sec:frontier}.
 
 We began from a standard nnU-Net ResEnc-L~\cite{isensee2021nnunet,isensee2024resenc} baseline and
 found repeatedly that changes to the network bought less than changes to how its probabilities
@@ -102,10 +101,9 @@ became a label map. Our contributions are:
       (Section~\ref{sec:ablation}), with no new architecture, no new loss, and no retraining of
       the constituent models.
 \item \textbf{A diagnosis of the residual error.} The remaining false positives are confident,
-      coherent, isolated and corroborated across independently trained networks. Seven
-      suppression strategies spanning the decode, the loss and the seed threshold all failed on
-      this system, and we report them in full because they are standard practice a reader would
-      otherwise reasonably invest in (Section~\ref{sec:fp}).
+      coherent and corroborated across independently trained networks. Seven suppression
+      strategies spanning the decode, the loss and the seed threshold all failed on this system
+      (Section~\ref{sec:fp}).
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,9 +119,8 @@ spacing and array dimensions vary across the cohort. Reference labels comprise n
 tumour core (NETC), surrounding non-enhancing FLAIR hyperintensity (SNFH), enhancing tumour (ET)
 and resection cavity (RC). Region prevalence is markedly imbalanced (54\% NETC, 89\% SNFH,
 96\% ET and only 13\% RC), which is the principal reason the RC channel is our weakest and is
-handled separately below. We trained on the training archive as distributed, which spans two site
-folders; every cavity case sits in the second, so unpacking only the first yields 651 cases and
-no cavities at all. We applied no corrected-label overlay and no later re-release. Validation uses the official 179-case set scored on the challenge
+handled separately below. We trained on the training archive as distributed, with no
+corrected-label overlay and no later re-release. Validation uses the official 179-case set scored on the challenge
 server, which runs the organisers' evaluation containers through the MedPerf
 platform~\cite{medperf2023}; we never see its reference labels.
 
@@ -160,20 +157,19 @@ CC-loss     & 6-region  & component-weighted fine-tune & high-recall detector \\
 The three differ in two respects only. The \emph{data configuration} is the 4-region formulation
 above, or a 6-region \emph{completion} variant adding supervised channels for the disentangled
 shells NETC $=\mathrm{TC}\setminus\mathrm{ET}$ and SNFH $=\mathrm{WT}\setminus\mathrm{TC}$, which
-give direct gradients for the structured background of ET and TC. Its two auxiliary channels
-write labels that already agree with the regions they overlap, so the four real channels still
-decode to WT/TC/ET/RC unchanged and the auxiliaries are excluded from the ensemble average. The
+give direct gradients for the structured background of ET and TC. Its auxiliary channels write
+labels that already agree with the regions they overlap, so the four real channels still decode
+to WT/TC/ET/RC unchanged and the auxiliaries are excluded from the ensemble average. The
 \emph{objective} is Dice plus a BCE restricted to the hardest 10\% of voxels per batch
 (top-$K$, $K=10\%$), optionally with an auxiliary per-component term.
 
 The third member is a fine-tune of the completion member, warm-started from its checkpoint for a
 further 100 epochs at learning rate $10^{-3}$, selected on running validation pseudo-Dice. Its
-added term is a one-versus-rest blob loss~\cite{kofler2022blob,kundu2026instance}: reference
-components are labelled with 26-connectivity per real region channel, a soft Dice is taken
-between the prediction and each component within its padded bounding box, and these are averaged
-uniformly over channels containing foreground, so each lesion counts once regardless of volume.
-It enters at weight $\lambda=0.2$, applied only at the full-resolution deep-supervision head
-since downsampled scales merge neighbouring components. It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
+added term is a one-versus-rest blob loss~\cite{kofler2022blob,kundu2026instance}: per real
+region channel, reference components are labelled with 26-connectivity and a soft Dice is taken
+between the prediction and each component within its padded bounding box, averaged uniformly over
+channels containing foreground, so each lesion counts once regardless of volume. It enters at
+weight $\lambda=0.2$ at the full-resolution deep-supervision head only. It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
 $F_1$ of 0.429/0.530/0.543, the highest we ever recorded, while its lesion-wise Dice fell to
 0.670/0.715/0.691, far below our baseline; alone, it is sunk entirely by its false positives. This
 tension is precisely what the ensemble exploits.
@@ -190,12 +186,11 @@ The tumour probability map is the unweighted mean over members $m$,
 r \in \{\mathrm{WT},\mathrm{TC},\mathrm{ET}\}.
 \]
 
-The mechanism is asymmetric, and the asymmetry is the point. A detection supported by all three
-members retains a high mean; one idiosyncratic to a single member is divided by three and falls
-below the decision threshold. Averaging the high-recall CC-loss member into two cleaner models
-reduced false positives from \textbf{1.66 to 0.85 per case} while retaining its corroborated true
-detections. Dice and $F_1$ rose \emph{together} rather than trading, the only mechanism we found
-that does so, and the reason the ensemble is not merely a variance-reduction convenience.
+The mechanism is asymmetric. A detection supported by all three members retains a high mean; one
+idiosyncratic to a single member is divided by three and falls below the decision threshold.
+Averaging the high-recall CC-loss member into two cleaner models reduced false positives from
+\textbf{1.66 to 0.85 per case} while retaining its corroborated detections, and Dice and $F_1$
+rose together rather than trading, the only mechanism we found that does so.
 
 The resection cavity is treated separately. RC is a single large structure for which ensembling
 gave no benefit: a two-model RC average moved lesion-wise Dice from 0.630 to 0.628, within noise.
@@ -207,10 +202,9 @@ RC voxel to background, rather than restoring the label it overwrote.
 \subsection{Hysteresis decoding}
 \label{sec:hysteresis}
 
-Converting $\bar{p}$ to a mask with one global threshold $t$ forces a single number to answer two
-unrelated questions. A low $t$ promotes every noise speck to a lesion; a high $t$ amputates every
-real lesion at its margin, because the tumour boundary in these probability maps lies between
-roughly 0.30 and 0.60. No single value is correct for both.
+One global threshold $t$ must answer two unrelated questions. A low $t$ promotes every noise
+speck to a lesion; a high $t$ cuts every real lesion short at its margin, because the tumour
+boundary in these probability maps lies between roughly 0.30 and 0.60.
 
 Hysteresis thresholding, borrowed from classical edge detection~\cite{canny1986}, splits the two
 decisions across thresholds $t_{\mathrm{lo}} < t_{\mathrm{hi}}$. Writing $\mathcal{C}(\cdot)$ for the set of 6-connected
@@ -297,15 +291,11 @@ Section~\ref{sec:fp} is needed.}
 \label{fig:hyst}
 \end{figure}
 
-The critical property is what the rule does \emph{not} use. It thresholds on peak probability and
-never on component size or mean probability. This is what separates it from the component filters
-that fail here (Section~\ref{sec:fp}): size and mean confidence both correlate with \emph{being a
-small true lesion}, so filtering on them preferentially destroys the targets the task rewards,
-whereas peak probability does not. A thirty-voxel metastasis with a single voxel at 0.9 survives
-intact; a large diffuse region never reaching 0.7 anywhere is removed in full. One confident
-voxel is sufficient evidence of existence, and existence is what $F_1$ measures.
-
-Hysteresis is applied per region to WT, TC and ET, and excluded for RC.
+The rule thresholds on peak probability and never on component size or mean probability. This
+separates it from the component filters that fail here (Section~\ref{sec:fp}): size and mean
+confidence both correlate with being a small true lesion, so filtering on them destroys the
+targets the task rewards, whereas peak probability does not. Hysteresis is applied per region to
+WT, TC and ET, and excluded for RC.
 
 \subsection{Final pipeline and reproducibility}
 
@@ -362,7 +352,7 @@ compose into one label map by painting WT, TC, ET, then RC, so nested regions ov
 \end{figure}
 
 All code, the exact decode, the container definition and the
-diagnostic scripts behind every number in this paper are released. Inference is deterministic
+diagnostic scripts are released. Inference is deterministic
 given the checkpoints; the submitted container bakes in all three and required 22.4\,s per case
 on an NVIDIA RTX 4090, measured over six cases.
 
@@ -423,20 +413,18 @@ row-to-row effect is conditional on the rows above it; this is not a factorial a
 Two steps dominate Table~\ref{tab:ablation}. Ensembling contributes $+0.106/+0.086/+0.091$ Dice
 and hysteresis a further $+0.032/+0.034/+0.033$; together they account for $+0.138/+0.120/+0.124$
 of the $+0.165/+0.144/+0.153$ total, or over four fifths of it. Both are inference-time operations
-on frozen probability maps. The tumour $F_1$ column tells a complementary story: neither step
-improves it, and the detection gains arrive only with the high-recall third member, which is
-precisely the tension Section~\ref{sec:frontier} quantifies. Over the same period the components
-that cost most to develop contributed nothing that survived: a tumour-specialist and a
-cavity-specialist model were each \emph{worse} than the general network at their own speciality.
+on frozen probability maps. Neither improves tumour $F_1$; the detection gains arrive only with
+the high-recall third member, the tension Section~\ref{sec:frontier} quantifies. A
+tumour-specialist and a cavity-specialist model were each \emph{worse} than the general network
+at their own speciality.
 
 \subsection{The Dice--$F_1$ trade-off}
 \label{sec:frontier}
 
 Interpolating the fusion weight of the high-recall CC-loss member traces a trade-off that is
-monotone over the three weights we tested (Table~\ref{tab:frontier}). $F_1$ can be bought, but
-only by paying Dice, and the exchange rate is unfavourable: moving from weight $1/3$ to $1/2$
-buys $+0.053/+0.051/+0.066$ $F_1$ at a cost of $-0.050/-0.046/-0.046$ Dice across three regions
-and eight of the twelve official metrics. We retained $1/3$, the operating point with the best
+monotone over the three weights we tested (Table~\ref{tab:frontier}): moving from weight $1/3$ to
+$1/2$ buys $+0.053/+0.051/+0.066$ $F_1$ at a cost of $-0.050/-0.046/-0.046$ Dice across three
+regions and eight of the twelve official metrics. We retained $1/3$, the operating point with the best
 overall balance across the twelve reported cells; we did not attempt to reproduce the organisers'
 final ranking procedure.
 
@@ -457,13 +445,11 @@ $1/2$             & 0.670/0.715/0.691 & \textbf{0.429/0.530/0.543} \\
 \end{tabular}
 \end{table}
 
-The same trade separates our two thresholds, which are \emph{not} interchangeable knobs. Lowering
-the seed threshold $t_{\mathrm{hi}}$ from 0.70 to 0.65 gained $F_1$ $+0.042/+0.039/+0.043$ and lost Dice
-$-0.017$: a large move along the trade-off, and one we rejected. Lowering the extent threshold
-$t_{\mathrm{lo}}$ from 0.30 to 0.25 gained Dice $+0.005/+0.005/+0.009$ for $-0.001$ $F_1$: not a move along
-the trade-off at all, but a free gain, and the configuration we submitted. Pushing further to
-$t_{\mathrm{lo}}=0.20$ returned to trading, adding $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on whole
-tumour, which brackets the useful range of the extent threshold at $t_{\mathrm{lo}}=0.25$.
+The two thresholds behave differently. Lowering the seed threshold $t_{\mathrm{hi}}$ from 0.70 to
+0.65 gained $F_1$ $+0.042/+0.039/+0.043$ and lost Dice $-0.017$, a large move along the trade-off
+that we rejected. Lowering the extent threshold $t_{\mathrm{lo}}$ from 0.30 to 0.25 gained Dice
+$+0.005/+0.005/+0.009$ for $-0.001$ $F_1$, and is the configuration we submitted. Pushing to
+$t_{\mathrm{lo}}=0.20$ added $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on whole tumour.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -542,19 +528,15 @@ a dedicated key holding only small-component voxels, every lesion weighted equal
 size; over 4000 verified draws the probability of centring a patch on a small lesion rose from
 1.28\% to 25.75\%, twenty-fold. The resulting model did not detect more small lesions.
 
-\paragraph{Enlarging small targets.} We instead dilated isolated
-small targets, so a thirty-voxel lesion presents roughly four times the volume and a larger
-object for the receptive field, with a matched selective erosion at inference. Submitted alone
-this lifted tumour $F_1$ by $+0.012/+0.014/+0.013$, evidence that a meaningful share of the extra
-detections are real. Grafting only the additional, non-overlapping detections onto our best
-submission raised $F_1$ by as much as $+0.034/+0.027/+0.031$ but lowered lesion-wise Dice by
-$-0.010/-0.012/-0.012$. The net effect across the official metrics was negative. The reason is specific to lesion-wise scoring and
-worth stating plainly: \emph{many newly detected small lesions enter the per-lesion Dice average
-at a below-average value}, because small lesions are segmented less accurately than large ones.
-Under volumetric Dice these components would carry far less weight; under lesion-wise Dice each
-carries as much as any other lesion. A more
-aggressive variant added 156 further components averaging six voxels each and bought only
-$+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmingly not lesions.
+\paragraph{Enlarging small targets.} We dilated isolated small targets, so a thirty-voxel lesion
+presents roughly four times the volume, with a matched selective erosion at inference. Submitted
+alone this lifted tumour $F_1$ by $+0.012/+0.014/+0.013$. Grafting only the additional,
+non-overlapping detections onto our best submission raised $F_1$ by as much as
+$+0.034/+0.027/+0.031$ but lowered lesion-wise Dice by $-0.010/-0.012/-0.012$, a negative net
+effect across the official metrics: small lesions are segmented less accurately than large ones,
+so each one recovered enters the per-lesion Dice average below its mean, and under lesion-wise
+scoring it carries the same weight as any other lesion. A more aggressive variant added 156
+further components averaging six voxels each for $+0.003/+0.004/+0.005$ $F_1$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
@@ -562,10 +544,8 @@ $+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmi
 
 Our BraTS 2026 Task 1 submission reaches lesion-wise Dice of 0.725/0.766/0.746 with no novel
 architecture and no novel loss, using ensembling as false-positive dilution and hysteresis
-decoding. Our residual deficit is entirely in tumour detection $F_1$. Seven confidence-based suppression
-strategies failed to address it; and lesion-wise Dice actively penalises recovering
-additional small lesions. We therefore contribute, alongside the method, an error analysis that
-narrows where future effort is likely to be repaid. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
+decoding. The residual deficit is in tumour detection $F_1$, which seven confidence-based
+suppression strategies failed to address. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
 
 \subsubsection{Acknowledgements.} Data used in this publication were obtained as part of the
 Challenge project through Synapse ID (syn74274097).
