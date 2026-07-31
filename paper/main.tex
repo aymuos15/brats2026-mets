@@ -521,9 +521,9 @@ scale-space (smoothed) seed  & at every matched FP rate the plain threshold dete
 Since decoding could not separate these errors, we attacked the 43\% of misses to which the
 network is wholly blind from the training side.
 
-\paragraph{Sampling frequency.} nnU-Net's sampler draws a random key from
-\texttt{class\_locations} then a random voxel within it, so a thirty-voxel metastasis sharing a
-key with every large-lesion and oedema voxel is patch-centred roughly 0.3\% of the time. We added
+\paragraph{Sampling frequency.} nnU-Net's sampler draws a random key from its class-location
+table, then a random voxel inside it. A thirty-voxel metastasis sharing a key with every
+large-lesion and oedema voxel is therefore patch-centred roughly 0.3\% of the time. We added
 a dedicated key holding only small-component voxels, every lesion weighted equally regardless of
 size; over 4000 verified draws the probability of centring a patch on a small lesion rose from
 1.28\% to 25.75\%, twenty-fold. The resulting model did not detect more small lesions.
