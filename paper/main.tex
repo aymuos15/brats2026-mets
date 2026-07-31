@@ -241,59 +241,71 @@ that matter.
 \centering
 \begin{tikzpicture}[xscale=0.78, yscale=2.70]
 
-% ---- threshold bands -------------------------------------------------------
-\fill[blue!5]  (0,0.25) rectangle (9.6,0.70);
+% ---- threshold band --------------------------------------------------------
+\fill[blue!5]  (0,0.25) rectangle (9.55,0.70);
 
 % ---- axes ------------------------------------------------------------------
-\draw[->,gray!70] (0,0) -- (9.9,0) node[right,black,font=\scriptsize,xshift=1pt] {position};
+\draw[->,gray!70] (0,0) -- (9.95,0) node[right,black,font=\scriptsize,xshift=1pt] {position};
 \draw[->,gray!70] (0,0) -- (0,1.05);
 \foreach \y/\l in {0/0, 0.5/0.5, 1.0/1.0}
   \draw[gray!70] (-0.06,\y) -- (0,\y) node[left,black,font=\scriptsize,xshift=-2pt] {\l};
 \node[rotate=90,font=\scriptsize,anchor=south] at (-0.72,0.5) {$\bar{p}_r(x)$};
 
 % ---- thresholds (labelled to the right, clear of the profile) --------------
-\draw[densely dashed,red!70!black]  (0,0.70) -- (9.6,0.70);
-\draw[densely dashed,blue!70!black] (0,0.25) -- (9.6,0.25);
+\draw[densely dashed,red!70!black]  (0,0.70) -- (9.55,0.70);
+\draw[densely dashed,blue!70!black] (0,0.25) -- (9.55,0.25);
 \node[font=\scriptsize,red!60!black,anchor=west]
-  at (9.75,0.70) {$t_{\mathrm{hi}}=0.70$ \,(existence)};
+  at (9.70,0.70) {$t_{\mathrm{hi}}=0.70$ \,(existence)};
 \node[font=\scriptsize,blue!60!black,anchor=west]
-  at (9.75,0.25) {$t_{\mathrm{lo}}=0.25$ \,(extent)};
+  at (9.70,0.25) {$t_{\mathrm{lo}}=0.25$ \,(extent)};
 
 % ---- probability profile ---------------------------------------------------
 \draw[very thick,black!80] plot[smooth,tension=0.7] coordinates {
-  (0.30,0.02) (0.75,0.05) (1.05,0.14) (1.35,0.34) (1.70,0.66) (2.00,0.92)
-  (2.30,0.66) (2.65,0.34) (2.95,0.14) (3.25,0.05) (3.70,0.03)
-  (4.15,0.09) (4.60,0.27) (5.05,0.44) (5.50,0.52) (5.95,0.44) (6.40,0.27)
-  (6.85,0.10) (7.20,0.04)
-  (7.90,0.04) (8.12,0.22) (8.32,0.60) (8.45,0.88) (8.58,0.60) (8.78,0.22)
-  (9.00,0.04) (9.45,0.02) };
+  (0.30,0.02) (0.70,0.05) (1.00,0.13) (1.20,0.25) (1.55,0.60) (2.00,0.92)
+  (2.45,0.60) (2.80,0.25) (3.00,0.13) (3.35,0.05)
+  (3.50,0.08) (3.75,0.25) (4.15,0.44) (4.55,0.52) (4.95,0.44) (5.35,0.25)
+  (5.65,0.10) (5.95,0.05)
+  (6.15,0.06) (6.30,0.25) (6.45,0.33) (6.60,0.35) (6.75,0.33) (6.90,0.25)
+  (7.05,0.06)
+  (7.60,0.03) (8.15,0.04) (8.30,0.25) (8.45,0.62) (8.60,0.88) (8.75,0.62)
+  (8.90,0.25) (9.05,0.05) (9.40,0.02) };
 
-% ---- retained / discarded extents ------------------------------------------
-\draw[line width=2.6pt,green!45!black] (1.24,-0.085) -- (2.80,-0.085);
-\draw[line width=2.6pt,red!60!black,densely dotted] (4.52,-0.085) -- (6.50,-0.085);
-\draw[line width=2.6pt,green!45!black] (8.13,-0.085) -- (8.77,-0.085);
+% ---- what a single strict threshold would have kept ------------------------
+\draw[line width=2.6pt,black!45] (1.69,-0.10) -- (2.31,-0.10);
+\node[font=\scriptsize,black!55,anchor=west] at (2.45,-0.10)
+  {extent kept by $t_{\mathrm{hi}}$ alone: the margin is amputated};
 
-% ---- annotations -----------------------------------------------------------
-\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (2.02,-0.135)
-  {\textbf{kept}\\[-1pt] peak $0.92>t_{\mathrm{hi}}$};
-\node[font=\scriptsize,align=center,anchor=north,red!55!black] at (5.51,-0.135)
-  {\textbf{discarded}\\[-1pt] peak $0.52<t_{\mathrm{hi}}$};
-\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (8.45,-0.135)
-  {\textbf{kept}\\[-1pt] peak $0.88>t_{\mathrm{hi}}$\\[-1pt] (only 30 voxels)};
+% ---- extents retained / dropped by hysteresis ------------------------------
+\draw[line width=2.6pt,green!45!black]            (1.20,-0.24) -- (2.80,-0.24);
+\draw[line width=2.6pt,red!65!black] (3.75,-0.24) -- (5.35,-0.24);
+\draw[line width=2.6pt,red!65!black] (6.30,-0.24) -- (6.90,-0.24);
+\draw[line width=2.6pt,green!45!black]            (8.30,-0.24) -- (8.90,-0.24);
 
-\node[font=\scriptsize,anchor=south] at (2.02,0.95) {large lesion};
-\node[font=\scriptsize,anchor=south] at (5.51,0.55) {diffuse region};
-\node[font=\scriptsize,anchor=south east] at (9.45,0.86) {small lesion};
+% ---- verdicts --------------------------------------------------------------
+\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (2.00,-0.29)
+  {\textbf{kept}\\[-1pt] peak $0.92$};
+\node[font=\scriptsize,align=center,anchor=north,red!55!black]   at (4.55,-0.29)
+  {\textbf{dropped}\\[-1pt] peak $0.52$};
+\node[font=\scriptsize,align=center,anchor=north,red!55!black]   at (6.60,-0.29)
+  {\textbf{dropped}\\[-1pt] peak $0.35$};
+\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (8.60,-0.29)
+  {\textbf{kept}\\[-1pt] peak $0.88$};
+
+% ---- component names -------------------------------------------------------
+\node[font=\scriptsize,anchor=south] at (2.00,0.95) {large lesion};
+\node[font=\scriptsize,anchor=south] at (4.55,0.56) {diffuse region};
+\node[font=\scriptsize,anchor=south] at (6.60,0.38) {noise speck};
+\node[font=\scriptsize,anchor=south] at (8.60,0.91) {small lesion};
 
 \end{tikzpicture}
-\caption{Hysteresis decoding on a 1-D slice through the fused probability map; the shaded band
-spans $t_{\mathrm{lo}}$ to $t_{\mathrm{hi}}$. Thresholding at $t_{\mathrm{hi}}$ alone would keep
-only the peaks above the band, amputating each lesion's margin; at $t_{\mathrm{lo}}$ alone it
-would admit the diffuse region. Hysteresis keeps every component of
-$\bar{p}_r>t_{\mathrm{lo}}$ whose peak clears $t_{\mathrm{hi}}$, at full $t_{\mathrm{lo}}$-extent
-(green), and drops those that never do (red). All three are decided by peak alone; size is never
-consulted, so the 30-voxel lesion survives while the far larger diffuse region, which never
-reaches $t_{\mathrm{hi}}$ anywhere, does not.}
+\caption{Hysteresis decoding on a 1-D slice through the fused probability map. Every component of
+$\bar{p}_r>t_{\mathrm{lo}}$ is a candidate; it is kept \emph{in full} if its peak clears
+$t_{\mathrm{hi}}$ (green) and deleted entirely if it never does (red). The grey bar shows what a
+single strict threshold at $t_{\mathrm{hi}}$ would have kept of the large lesion: everything in
+the shaded band is amputated, which is the margin the second threshold exists to recover. The
+noise speck and the small lesion are drawn the same width and meet opposite fates, decided only
+by peak; size and mean probability are never consulted, which is what separates this rule from
+the component filters of Section~\ref{sec:fp}.}
 \label{fig:hyst}
 \end{figure}
 
