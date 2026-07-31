@@ -203,8 +203,7 @@ RC voxel to background, rather than restoring the label it overwrote.
 \label{sec:hysteresis}
 
 One global threshold $t$ must answer two unrelated questions. A low $t$ promotes every noise
-speck to a lesion; a high $t$ cuts every real lesion short at its margin, because the tumour
-boundary in these probability maps lies between roughly 0.30 and 0.60.
+speck to a lesion; a high $t$ cuts every real lesion short at its margin.
 
 Hysteresis thresholding, borrowed from classical edge detection~\cite{canny1986}, splits the two
 decisions across thresholds $t_{\mathrm{lo}} < t_{\mathrm{hi}}$. Writing $\mathcal{C}(\cdot)$ for the set of 6-connected
@@ -384,6 +383,32 @@ instances are still missed or spuriously introduced, even where the lesions we d
 delineated. Detection, not delineation, is the residual problem, and the rest of this paper is
 about why it resists the obvious fixes.
 
+Table~\ref{tab:train} reports the same pipeline on training data, scored locally with the
+organisers' evaluation code over 80 training cases. Two caveats bound its use. Every model was
+trained on these cases without a held-out fold, so the figures describe memorised data and are
+not comparable with Table~\ref{tab:final}. The harness scored the pipeline at
+$t_{\mathrm{lo}}=0.30$, the configuration of row 6 of Table~\ref{tab:ablation}, rather than the
+submitted $t_{\mathrm{lo}}=0.25$; and it covers the tumour regions only, since the cavity was
+evaluated on a separate set of cavity-bearing cases.
+
+\begin{table}[t]
+\centering
+\caption{Training-set performance: three-model fusion, hysteresis $t_{\mathrm{lo}}=0.30$,
+$t_{\mathrm{hi}}=0.70$, official evaluation code, 80 training cases. These cases were in training,
+so the values are optimistic.}
+\label{tab:train}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & WT & TC & ET \\
+\midrule
+Lesion-wise Dice     & 0.688 & 0.720 & 0.702 \\
+Lesion-wise NSD      & 0.753 & 0.812 & 0.804 \\
+Small-instance $F_1$ & 0.424 & 0.483 & 0.472 \\
+\bottomrule
+\end{tabular}\\[2pt]
+{\footnotesize Per case: 1.83 true positives, 0.85 false positives, 2.54 missed lesions.}
+\end{table}
+
 \subsection{Ablation}
 \label{sec:ablation}
 
@@ -519,8 +544,8 @@ network is wholly blind from the training side.
 table, then a random voxel inside it. A thirty-voxel metastasis sharing a key with every
 large-lesion and oedema voxel is therefore patch-centred roughly 0.3\% of the time. We added
 a dedicated key holding only small-component voxels, every lesion weighted equally regardless of
-size; over 4000 verified draws the probability of centring a patch on a small lesion rose from
-1.28\% to 25.75\%, twenty-fold. The resulting model did not detect more small lesions.
+size; the measured probability of centring a patch on a small lesion rose from 1.28\% to
+25.75\%, twenty-fold. The resulting model did not detect more small lesions.
 
 \paragraph{Enlarging small targets.} We dilated isolated small targets, so a thirty-voxel lesion
 presents roughly four times the volume, with a matched selective erosion at inference. Submitted
