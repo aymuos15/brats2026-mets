@@ -168,10 +168,11 @@ added term is a one-versus-rest blob loss~\cite{kofler2022blob,kundu2026instance
 region channel, reference components are labelled with 26-connectivity and a soft Dice is taken
 between the prediction and each component within its padded bounding box, averaged uniformly over
 channels containing foreground, so each lesion counts once regardless of volume. It enters at
-weight $\lambda=0.2$ at the full-resolution deep-supervision head only. It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
-$F_1$ of 0.429/0.530/0.543, the highest we ever recorded, while its lesion-wise Dice fell to
-0.670/0.715/0.691, far below our baseline; alone, it is sunk entirely by its false positives. This
-tension is precisely what the ensemble exploits.
+weight $\lambda=0.2$ at the full-resolution deep-supervision head only. It is our strongest
+detector and our weakest segmenter: at fusion weight $1/2$ it reached the highest small-instance
+$F_1$ we recorded, 0.429/0.530/0.543, but only 0.670/0.715/0.691 lesion-wise Dice
+(Table~\ref{tab:frontier}), sunk by its false positives. This tension is what the ensemble
+exploits.
 
 Inference uses sliding-window prediction with \texttt{step\_size} 0.25 and test-time
 augmentation by mirroring, retaining per-region probability maps.
