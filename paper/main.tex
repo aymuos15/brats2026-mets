@@ -274,12 +274,12 @@ that matter.
 \draw[line width=2.6pt,green!45!black] (8.13,-0.085) -- (8.77,-0.085);
 
 % ---- annotations -----------------------------------------------------------
-\node[font=\scriptsize,align=center,green!35!black] at (2.02,-0.235)
+\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (2.02,-0.135)
   {\textbf{kept}\\[-1pt] peak $0.92>t_{\mathrm{hi}}$};
-\node[font=\scriptsize,align=center,red!55!black] at (5.51,-0.235)
+\node[font=\scriptsize,align=center,anchor=north,red!55!black] at (5.51,-0.135)
   {\textbf{discarded}\\[-1pt] peak $0.52<t_{\mathrm{hi}}$};
-\node[font=\scriptsize,align=center,green!35!black] at (8.45,-0.235)
-  {\textbf{kept}\\[-1pt] only 30 voxels};
+\node[font=\scriptsize,align=center,anchor=north,green!35!black] at (8.45,-0.135)
+  {\textbf{kept}\\[-1pt] peak $0.88>t_{\mathrm{hi}}$\\[-1pt] (only 30 voxels)};
 
 \node[font=\scriptsize,anchor=south] at (2.02,0.95) {large lesion};
 \node[font=\scriptsize,anchor=south] at (5.51,0.55) {diffuse region};
@@ -291,8 +291,9 @@ spans $t_{\mathrm{lo}}$ to $t_{\mathrm{hi}}$. Thresholding at $t_{\mathrm{hi}}$ 
 only the peaks above the band, amputating each lesion's margin; at $t_{\mathrm{lo}}$ alone it
 would admit the diffuse region. Hysteresis keeps every component of
 $\bar{p}_r>t_{\mathrm{lo}}$ whose peak clears $t_{\mathrm{hi}}$, at full $t_{\mathrm{lo}}$-extent
-(green), and drops those that never do (red). Size is never consulted, so the 30-voxel lesion survives on one
-confident voxel while the far larger diffuse region does not.}
+(green), and drops those that never do (red). All three are decided by peak alone; size is never
+consulted, so the 30-voxel lesion survives while the far larger diffuse region, which never
+reaches $t_{\mathrm{hi}}$ anywhere, does not.}
 \label{fig:hyst}
 \end{figure}
 
