@@ -28,7 +28,7 @@
 
 \begin{document}
 
-\title{Inference-Time Decoding for Brain Metastasis\\ Segmentation: Ensemble Dilution, Hysteresis\\ Thresholding, and Safe Post-processing Validation}
+\title{Inference-Time Decoding for Brain Metastasis\\ Segmentation: Ensembling, Hysteresis Thresholding,\\ and Post-processing Validation}
 \titlerunning{Inference-Time Decoding for Brain Metastasis Segmentation}
 
 \author{%
@@ -57,23 +57,20 @@ London, UK}
 Brain metastasis segmentation is scored lesion-wise, which turns it into a detection problem:
 each lesion counts equally regardless of volume, and every spurious component is charged twice,
 once as a zero in the Dice average and once in the $F_1$ denominator. Most challenge effort goes
-into architectures and losses. We find the decisive gains lie downstream, in how probabilities
-become a label map, and we make three claims. First, an unweighted average of three nnU-Net
-ResEnc-L variants decoded by hysteresis thresholding raises lesion-wise Dice from
-0.560/0.622/0.593 to 0.725/0.766/0.746, with those two inference-time steps contributing over
-four fifths of the gain and no new architecture, loss, or training run; hysteresis works because
-it splits the decision of whether a lesion exists from how far it extends, and never inspects
-component size. Second, we characterise the residual error and derive a design rule from it: the median peak
-probability inside our false positives is 0.96 against 0.55 inside the lesions we miss, so
-confidence is inverted with respect to correctness, and any criterion monotone in confidence will
-remove true lesions before false ones. We establish this across seven suppression strategies
-spanning the decode, the loss and the seed threshold, which identifies where the remaining
-headroom is not. Third, we give a validation protocol for lesion-wise post-processing: rules that
-change how many components are retained cannot be tuned on training cases even relatively,
-because a memorised model rarely emits the spurious components such a rule would admit, an effect
-we quantify at $+0.028$ Dice offline against $-0.016$ measured. Together the second and third
-contributions tell practitioners which post-processing families are worth pursuing and which
-offline experiments can be trusted to predict held-out behaviour.
+into architectures and losses. We find our decisive gains lay downstream, in how probabilities
+become a label map. An unweighted average of three nnU-Net ResEnc-L variants decoded by
+hysteresis thresholding raises lesion-wise Dice from 0.560/0.622/0.593 to 0.725/0.766/0.746, with
+those two inference-time steps contributing over four fifths of the gain and without retraining
+the constituent models; hysteresis works because it splits the decision of whether a lesion
+exists from how far it extends, and never inspects component size. We then characterise the
+residual error. The median peak probability inside our false positives is 0.96 against 0.55
+inside the lesions we miss, and seven suppression strategies spanning the decode, the loss and
+the seed threshold all fail on this system, which suggests that ranking components by confidence
+is unpromising here and identifies where the remaining headroom is not. Finally, we report a
+validation failure that any team tuning post-processing on models trained without a held-out fold
+should expect: a cavity keep-rule measured at $+0.028$ lesion-wise Dice on our training-case
+harness delivered $-0.016$ on held-out validation, the wrong sign, because a memorised model
+rarely emits the spurious components such a rule would admit.
 
 \keywords{Brain metastases \and Lesion-wise evaluation \and Ensembling \and Hysteresis
 thresholding \and False positives \and nnU-Net \and BraTS.}
@@ -106,25 +103,25 @@ became a label map. Our contributions are:
 \item \textbf{An inference-time recipe that is most of our performance.} Ensembling as an
       explicit false-positive dilution mechanism, plus hysteresis decoding, contribute over
       four fifths of our total Dice improvement over the baseline
-      (Section~\ref{sec:ablation}), with no new architecture, loss, or training run.
-\item \textbf{A diagnosis of the residual error, and a design rule that follows from it.} The
-      remaining false positives are confident, coherent, isolated and corroborated across
-      independently trained networks. We establish across seven suppression strategies that any
-      criterion monotone in confidence is ruled out for this task, which narrows the search space
-      for future work (Section~\ref{sec:fp}).
-\item \textbf{A validation protocol for lesion-wise post-processing.} We identify exactly which
-      post-processing can be tuned offline on models trained without a held-out fold and which
-      cannot, give the mechanism that separates the two cases, and quantify the cost of getting
-      it wrong (Section~\ref{sec:harness}).
+      (Section~\ref{sec:ablation}), with no new architecture, no new loss, and no retraining of
+      the constituent models.
+\item \textbf{A diagnosis of the residual error.} The remaining false positives are confident,
+      coherent, isolated and corroborated across independently trained networks. Seven
+      suppression strategies spanning the decode, the loss and the seed threshold all failed on
+      this system, and we report them in full because they are standard practice a reader would
+      otherwise reasonably invest in (Section~\ref{sec:fp}).
+\item \textbf{A validation warning for lesion-wise post-processing.} Tuning post-processing on
+      cases the models were trained on is systematically optimistic, and for one component
+      keep-rule it reversed sign on held-out validation. We give the mechanism and quantify the
+      cost (Section~\ref{sec:harness}).
 \end{enumerate}
 
 \paragraph{What is and is not novel.} No component here is new: nnU-Net and its residual-encoder
 variants are off the shelf~\cite{isensee2021nnunet,isensee2024resenc}, probability averaging is
 standard, hysteresis dates to Canny~\cite{canny1986}, and our third member's objective follows
-blob loss~\cite{kofler2022blob,kundu2026instance}. We claim the empirical finding that this combination is where
-the performance is under lesion-wise scoring, together with the design rule and the validation
-protocol that follow from our error analysis. Readers looking for a new architecture will not
-find one, and our argument is that they should not be looking.
+blob loss~\cite{kofler2022blob,kundu2026instance}. We claim the empirical finding that this
+combination is where the performance is under lesion-wise scoring, together with the error
+analysis and the validation warning that follow from it.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Methods}
@@ -139,7 +136,9 @@ spacing and array dimensions vary across the cohort. Reference labels comprise n
 tumour core (NETC), surrounding non-enhancing FLAIR hyperintensity (SNFH), enhancing tumour (ET)
 and resection cavity (RC). Region prevalence is markedly imbalanced (54\% NETC, 89\% SNFH,
 96\% ET and only 13\% RC), which is the principal reason the RC channel is our weakest and is
-handled separately below. Validation uses the official 179-case set scored on the challenge
+handled separately below. We trained on the training archive as distributed, which spans two site
+folders; every cavity case sits in the second, so unpacking only the first yields 651 cases and
+no cavities at all. We applied no corrected-label overlay and no later re-release. Validation uses the official 179-case set scored on the challenge
 server, which runs the organisers' evaluation containers through the MedPerf
 platform~\cite{medperf2023}; we never see its reference labels.
 
@@ -174,12 +173,25 @@ CC-loss     & 6-region  & component-weighted fine-tune & high-recall detector \\
 \end{tabular}
 \end{table}
 
-The third member is fine-tuned with a connected-component-aware objective that weights each
-lesion equally rather than each voxel, following the blob-loss
-principle~\cite{kofler2022blob,kundu2026instance}.
-It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
-$F_1$ of .429/.530/.543, the highest we ever recorded, while its lesion-wise Dice fell to
-.670/.715/.691, far below our baseline; alone, it is sunk entirely by its false positives. This
+The three differ in two respects only. The \emph{data configuration} is the 4-region formulation
+above, or a 6-region \emph{completion} variant adding supervised channels for the disentangled
+shells NETC $=\mathrm{TC}\setminus\mathrm{ET}$ and SNFH $=\mathrm{WT}\setminus\mathrm{TC}$, which
+give direct gradients for the structured background of ET and TC. Its two auxiliary channels
+write labels that already agree with the regions they overlap, so the four real channels still
+decode to WT/TC/ET/RC unchanged and the auxiliaries are excluded from the ensemble average. The
+\emph{objective} is Dice plus a BCE restricted to the hardest 10\% of voxels per batch
+(top-$K$, $K=10\%$), optionally with an auxiliary per-component term.
+
+The third member is a fine-tune of the completion member, warm-started from its checkpoint for a
+further 100 epochs at learning rate $10^{-3}$, selected on running validation pseudo-Dice. Its
+added term is a one-versus-rest blob loss~\cite{kofler2022blob,kundu2026instance}: reference
+components are labelled with 26-connectivity per real region channel, a soft Dice is taken
+between the prediction and each component within its padded bounding box, and these are averaged
+uniformly over channels containing foreground, so each lesion counts once regardless of volume.
+It enters at weight $\lambda=0.2$, applied only at the full-resolution deep-supervision head
+since downsampled scales merge neighbouring components. It is our strongest detector and our weakest segmenter. Submitted alone it reached small-instance
+$F_1$ of 0.429/0.530/0.543, the highest we ever recorded, while its lesion-wise Dice fell to
+0.670/0.715/0.691, far below our baseline; alone, it is sunk entirely by its false positives. This
 tension is precisely what the ensemble exploits.
 
 Inference uses sliding-window prediction with \texttt{step\_size} 0.25 and test-time
@@ -215,11 +227,11 @@ real lesion at its margin, because the tumour boundary in these probability maps
 roughly 0.30 and 0.60. No single value is correct for both.
 
 Hysteresis thresholding, borrowed from classical edge detection~\cite{canny1986}, splits the two
-decisions across thresholds $lo < hi$. Writing $\mathcal{C}(\cdot)$ for the set of 26-connected
+decisions across thresholds $t_{\mathrm{lo}} < t_{\mathrm{hi}}$. Writing $\mathcal{C}(\cdot)$ for the set of 26-connected
 components of a binary mask, the decoded region is
 \[
-\hat{M} \;=\; \bigcup \Big\{\, c \in \mathcal{C}\big(\bar{p}_r > lo\big) \;:\;
-\max_{x \in c} \bar{p}_r(x) > hi \,\Big\},
+\hat{M} \;=\; \bigcup \Big\{\, c \in \mathcal{C}\big(\bar{p}_r > t_{\mathrm{lo}}\big) \;:\;
+\max_{x \in c} \bar{p}_r(x) > t_{\mathrm{hi}} \,\Big\},
 \]
 that is, every component of the permissive mask whose \emph{peak} clears the strict threshold is
 retained \emph{at its full permissive extent}. Figure~\ref{fig:hyst} illustrates the three cases
@@ -227,25 +239,25 @@ that matter.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[xscale=0.95, yscale=3.15]
+\begin{tikzpicture}[xscale=0.78, yscale=2.70]
 
 % ---- threshold bands -------------------------------------------------------
-\fill[blue!5]  (0,0.25) rectangle (9.3,0.70);
+\fill[blue!5]  (0,0.25) rectangle (9.6,0.70);
 
 % ---- axes ------------------------------------------------------------------
-\draw[->,gray!70] (0,0) -- (9.9,0) node[right,black,font=\scriptsize] {position};
+\draw[->,gray!70] (0,0) -- (9.9,0) node[right,black,font=\scriptsize,xshift=1pt] {position};
 \draw[->,gray!70] (0,0) -- (0,1.05);
 \foreach \y/\l in {0/0, 0.5/0.5, 1.0/1.0}
   \draw[gray!70] (-0.06,\y) -- (0,\y) node[left,black,font=\scriptsize,xshift=-2pt] {\l};
-\node[rotate=90,font=\scriptsize,anchor=south] at (-0.62,0.5) {$\bar{p}_r(x)$};
+\node[rotate=90,font=\scriptsize,anchor=south] at (-0.72,0.5) {$\bar{p}_r(x)$};
 
-% ---- thresholds (labelled in the empty gap between the first two lesions) ---
-\draw[densely dashed,red!70!black]  (0,0.70) -- (9.3,0.70);
-\draw[densely dashed,blue!70!black] (0,0.25) -- (9.3,0.25);
-\node[font=\scriptsize,red!60!black,anchor=south,fill=white,inner sep=1pt]
-  at (3.68,0.725) {$hi=0.70$ \,(existence)};
-\node[font=\scriptsize,blue!60!black,anchor=south,fill=white,inner sep=1pt]
-  at (3.68,0.285) {$lo=0.25$ \,(extent)};
+% ---- thresholds (labelled to the right, clear of the profile) --------------
+\draw[densely dashed,red!70!black]  (0,0.70) -- (9.6,0.70);
+\draw[densely dashed,blue!70!black] (0,0.25) -- (9.6,0.25);
+\node[font=\scriptsize,red!60!black,anchor=west]
+  at (9.75,0.70) {$t_{\mathrm{hi}}=0.70$ \,(existence)};
+\node[font=\scriptsize,blue!60!black,anchor=west]
+  at (9.75,0.25) {$t_{\mathrm{lo}}=0.25$ \,(extent)};
 
 % ---- probability profile ---------------------------------------------------
 \draw[very thick,black!80] plot[smooth,tension=0.7] coordinates {
@@ -263,9 +275,9 @@ that matter.
 
 % ---- annotations -----------------------------------------------------------
 \node[font=\scriptsize,align=center,green!35!black] at (2.02,-0.235)
-  {\textbf{kept}\\[-1pt] peak $0.92>hi$};
+  {\textbf{kept}\\[-1pt] peak $0.92>t_{\mathrm{hi}}$};
 \node[font=\scriptsize,align=center,red!55!black] at (5.51,-0.235)
-  {\textbf{discarded}\\[-1pt] peak $0.52<hi$};
+  {\textbf{discarded}\\[-1pt] peak $0.52<t_{\mathrm{hi}}$};
 \node[font=\scriptsize,align=center,green!35!black] at (8.45,-0.235)
   {\textbf{kept}\\[-1pt] only 30 voxels};
 
@@ -275,10 +287,11 @@ that matter.
 
 \end{tikzpicture}
 \caption{Hysteresis decoding on a 1-D slice through the fused probability map; the shaded band
-spans $lo$ to $hi$. Thresholding at $hi$ alone would keep only the peaks above the band,
-amputating each lesion's margin; at $lo$ alone it would admit the diffuse region. Hysteresis keeps
-every component of $\bar{p}_r>lo$ whose peak clears $hi$, at full $lo$-extent (green), and drops
-those that never do (red). Size is never consulted, so the 30-voxel lesion survives on one
+spans $t_{\mathrm{lo}}$ to $t_{\mathrm{hi}}$. Thresholding at $t_{\mathrm{hi}}$ alone would keep
+only the peaks above the band, amputating each lesion's margin; at $t_{\mathrm{lo}}$ alone it
+would admit the diffuse region. Hysteresis keeps every component of
+$\bar{p}_r>t_{\mathrm{lo}}$ whose peak clears $t_{\mathrm{hi}}$, at full $t_{\mathrm{lo}}$-extent
+(green), and drops those that never do (red). Size is never consulted, so the 30-voxel lesion survives on one
 confident voxel while the far larger diffuse region does not.}
 \label{fig:hyst}
 \end{figure}
@@ -314,7 +327,7 @@ Hysteresis is applied per region to WT, TC and ET, and excluded for RC.
 
 % ---- tumour path -----------------------------------------------------------
 \node[op]  (mean) at (2.30,0)   {mean};
-\node[op]  (hyst) at (4.60,0)   {hysteresis\\[-1pt] $lo\,{=}\,0.25$, $hi\,{=}\,0.70$};
+\node[op]  (hyst) at (4.60,0)   {hysteresis\\[-1pt] $t_{\mathrm{lo}}\,{=}\,0.25$, $t_{\mathrm{hi}}\,{=}\,0.70$};
 \node[fin] (tum)  at (7.45,0)   {WT / TC / ET};
 
 \draw[ar] (m1.east) -- ++(0.42,0) |- (mean.west);
@@ -350,8 +363,10 @@ compose into one label map by painting WT, TC, ET, then RC, so nested regions ov
 Both thresholds were selected on the local harness of Section~\ref{sec:harness} and confirmed on
 the official validation set. All code, the exact decode, the container definition and the
 diagnostic scripts behind every number in this paper are released. Inference is deterministic
-given the checkpoints; the submitted container bakes in all three and requires approximately
-22\,s per case on a consumer GPU.
+given the checkpoints; the submitted container bakes in all three and required 22.4\,s per case
+on an NVIDIA RTX 4090. That figure is end-to-end and covers preprocessing, the three sliding-window
+passes with mirroring, probability fusion, decoding and disk I/O; it was measured over six cases,
+not the full validation set.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
@@ -363,7 +378,7 @@ Table~\ref{tab:final} reports our best submission on the 179-case official valid
 
 \begin{table}[t]
 \centering
-\caption{Best validation submission: three-way fusion, hysteresis $lo=0.25$, $hi=0.70$.
+\caption{Best validation submission: three-way fusion, hysteresis $t_{\mathrm{lo}}=0.25$, $t_{\mathrm{hi}}=0.70$.
 Official lesion-wise metrics, 179 cases.}
 \label{tab:final}
 \begin{tabular}{@{}lcccc@{}}
@@ -372,7 +387,7 @@ Official lesion-wise metrics, 179 cases.}
 \midrule
 Lesion-wise Dice     & 0.725 & 0.766 & 0.746 & 0.630 \\
 Lesion-wise NSD      & 0.741 & 0.815 & 0.806 & 0.521 \\
-Small-instance $F_1$ & 0.376 & 0.478 & 0.476 & \textbf{0.167} \\
+Small-instance $F_1$ & 0.376 & 0.478 & 0.476 & 0.167 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -384,31 +399,32 @@ delineated. Detection, not delineation, is the residual problem, and the rest of
 about why it resists the obvious fixes.
 
 \paragraph{On uncertainty and significance.} We report point estimates without confidence
-intervals, which is a genuine limitation rather than an oversight: the challenge server returns
-only aggregate validation scores, and per-case metrics and reference labels are withheld from
-participants, so dispersion and paired significance tests cannot be computed there at all. Where
-we control the evaluation we report per-case counts instead. Readers should treat differences
-below roughly 0.005 Dice as within our resolution to distinguish submissions.
+intervals. The challenge server returns only aggregate scores, withholding per-case metrics and
+reference labels, so dispersion and paired significance tests cannot be computed there at all;
+where we control the evaluation we report per-case counts instead. The aggregates are
+deterministic, so differences between them are exact, but we cannot say how much of a small
+difference would survive a different cohort.
 
 \subsection{Ablation}
 \label{sec:ablation}
 
 \begin{table}[t]
 \centering
-\caption{Development path. All rows are our own submissions scored on the official 179-case
-validation set, and are therefore directly comparable.}
+\caption{Development trace, in the order the changes were made. All rows are our own submissions
+scored on the official 179-case validation set and are therefore directly comparable, but each
+row-to-row effect is conditional on the rows above it; this is not a factorial ablation.}
 \label{tab:ablation}
 \begin{tabular}{@{}llcc@{}}
 \toprule
- & change & Dice wt/tc/et & $F_1$ wt/tc/et \\
+ & configuration & Dice wt/tc/et & $F_1$ wt/tc/et \\
 \midrule
-1 & baseline nnU-Net ResEnc-L      & .560/.622/.593 & .379/.469/.463 \\
-2 & \textbf{+ ensembling}          & .666/.708/.684 & .368/.439/.436 \\
-3 & + second member, step 0.25     & .678/.718/.696 & .370/.477/.484 \\
-4 & + RC from the CC-loss member   & .679/.719/.696 & .370/.477/.484 \\
-5 & \textbf{+ hysteresis}          & .711/.753/.729 & .365/.468/.475 \\
-6 & + third member                 & .720/.761/.737 & .376/.479/.477 \\
-7 & + extent $lo$ 0.30 $\to$ 0.25  & \textbf{.725/.766/.746} & .376/.478/.476 \\
+1 & single model, global threshold 0.5 & 0.560/0.622/0.593 & 0.379/0.469/0.463 \\
+2 & \textbf{+ two-model probability average} & 0.666/0.708/0.684 & 0.368/0.439/0.436 \\
+3 & \phantom{+} completion as the 2nd model, step 0.25 & 0.678/0.718/0.696 & 0.370/0.477/0.484 \\
+4 & + RC from the CC-loss model        & 0.679/0.719/0.696 & 0.370/0.477/0.484 \\
+5 & \textbf{+ hysteresis}              & 0.711/0.753/0.729 & 0.365/0.468/0.475 \\
+6 & + CC-loss as a 3rd model in the mean & 0.720/0.761/0.737 & 0.376/0.479/0.477 \\
+7 & + extent $t_{\mathrm{lo}}$ 0.30 $\to$ 0.25 & \textbf{0.725/0.766/0.746} & 0.376/0.478/0.476 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -418,47 +434,48 @@ and hysteresis a further $+0.032/+0.034/+0.033$; together they account for $+0.1
 of the $+0.165/+0.144/+0.153$ total, or over four fifths of it. Both are inference-time operations
 on frozen probability maps. The tumour $F_1$ column tells a complementary story: neither step
 improves it, and the detection gains arrive only with the high-recall third member, which is
-precisely the tension Section~\ref{sec:frontier} quantifies. Over the same period the components that cost most
-to develop contributed nothing that survived. A tumour-specialist and a cavity-specialist model
-were each \emph{worse} than the general network at their own speciality. A distance/boundary
-loss, Laplacian-of-Gaussian hint channels, MedNeXt-v2, KiU-Net, U-Mamba and larger kernels were
-all abandoned after failing to beat the baseline. We also determined that ``ResEnc-XL'' and
-``ResEnc-L'' instantiate an identical network for this dataset, the planners differing only in
-memory target, so architecture scaling is not a decorrelation lever here.
+precisely the tension Section~\ref{sec:frontier} quantifies. Over the same period the components
+that cost most to develop contributed nothing that survived: a tumour-specialist and a
+cavity-specialist model were each \emph{worse} than the general network at their own speciality.
+We also determined that ``ResEnc-XL'' and ``ResEnc-L'' instantiate an identical network for this
+dataset, the planners differing only in memory target, so architecture scaling is not a
+decorrelation lever here.
 
 \subsection{The Dice--$F_1$ trade-off}
 \label{sec:frontier}
 
-Interpolating the fusion weight of the high-recall CC-loss member traces a strict trade-off
-(Table~\ref{tab:frontier}). $F_1$ can be bought, but only by paying Dice, and the exchange rate is
-unfavourable: moving from weight $1/3$ to $1/2$ buys $+0.053/+0.051/+0.066$ $F_1$ at a cost of
-$-0.050/-0.046/-0.046$ Dice across three regions and eight of the twelve official metrics. We
-retained $1/3$, the operating point at which the aggregate over all twelve official metrics was
-best.
+Interpolating the fusion weight of the high-recall CC-loss member traces a trade-off that is
+monotone over the three weights we tested (Table~\ref{tab:frontier}). $F_1$ can be bought, but
+only by paying Dice, and the exchange rate is unfavourable: moving from weight $1/3$ to $1/2$
+buys $+0.053/+0.051/+0.066$ $F_1$ at a cost of $-0.050/-0.046/-0.046$ Dice across three regions
+and eight of the twelve official metrics. We retained $1/3$, the operating point with the best
+overall balance across the twelve reported cells; we did not attempt to reproduce the organisers'
+final ranking procedure.
 
 \begin{table}[t]
 \centering
-\caption{Fusion weight of the CC-loss member, on the official validation set. The trade is
-monotone: every gain in detection is paid for in delineation.}
+\caption{Fusion weight of the CC-loss member, on the official validation set, before the extent
+threshold was lowered to $t_{\mathrm{lo}}=0.25$. Over these three weights the trade is monotone:
+every gain in detection is paid for in delineation.}
 \label{tab:frontier}
 \begin{tabular}{@{}lcc@{}}
 \toprule
 CC-loss weight & Dice wt/tc/et & $F_1$ wt/tc/et \\
 \midrule
-$1/3$ (submitted) & \textbf{.720/.761/.737} & .376/.479/.477 \\
-$0.42$            & .695/.738/.714 & .403/.504/.510 \\
-$1/2$             & .670/.715/.691 & \textbf{.429/.530/.543} \\
+$1/3$ (retained)  & \textbf{0.720/0.761/0.737} & 0.376/0.479/0.477 \\
+$0.42$            & 0.695/0.738/0.714 & 0.403/0.504/0.510 \\
+$1/2$             & 0.670/0.715/0.691 & \textbf{0.429/0.530/0.543} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The same trade separates our two thresholds, which are \emph{not} interchangeable knobs. Lowering
-the seed threshold $hi$ from 0.70 to 0.65 gained $F_1$ $+0.042/+0.039/+0.043$ and lost Dice
+the seed threshold $t_{\mathrm{hi}}$ from 0.70 to 0.65 gained $F_1$ $+0.042/+0.039/+0.043$ and lost Dice
 $-0.017$: a large move along the trade-off, and one we rejected. Lowering the extent threshold
-$lo$ from 0.30 to 0.25 gained Dice $+0.005/+0.005/+0.009$ for $-0.001$ $F_1$: not a move along
+$t_{\mathrm{lo}}$ from 0.30 to 0.25 gained Dice $+0.005/+0.005/+0.009$ for $-0.001$ $F_1$: not a move along
 the trade-off at all, but a free gain, and the configuration we submitted. Pushing further to
-$lo=0.20$ returned to trading, adding $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on whole
-tumour, which brackets the useful range of the extent threshold at $lo=0.25$.
+$t_{\mathrm{lo}}=0.20$ returned to trading, adding $+0.003/+0.002/+0.002$ Dice for $-0.003$ $F_1$ on whole
+tumour, which brackets the useful range of the extent threshold at $t_{\mathrm{lo}}=0.25$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -467,11 +484,17 @@ tumour, which brackets the useful range of the extent threshold at $lo=0.25$.
 \subsection{Confidence is inverted with respect to correctness}
 \label{sec:fp}
 
-Measured on 80 reference cases with the official metric, the median peak probability inside a
-false positive is \textbf{0.96}, while inside a lesion we miss it is \textbf{0.55}. We detect 45\%
-of small lesions; 43\% of the misses are ones the model is wholly blind to, never exceeding a
-probability of 0.10 anywhere inside them; and 86\% of false positives fall far from any reference
-lesion.
+We measured this on 80 reference cases, per region over WT, TC and ET and then pooled. A
+\emph{small} lesion is a reference component below the official 20\,mm$^3$ cut, the population
+small-instance $F_1$ scores; a \emph{false positive} is a decoded component sharing no voxel with
+the reference mask for its region; a small lesion counts as detected if any decoded voxel falls
+inside it. Probabilities are read from the fused map $\bar{p}_r$, components labelled with
+26-connectivity, under the then-current decode $t_{\mathrm{lo}}=0.30$, $t_{\mathrm{hi}}=0.70$.
+On that basis the median peak probability inside a false positive is \textbf{0.96}, while inside
+a lesion we miss it is \textbf{0.55}. We detect 45\% of small lesions; 43\% of the misses are ones
+the model is wholly blind to, never exceeding a probability of 0.10 anywhere inside them; and 86\%
+of false positives are not recoverable as fragments of a reference lesion, a fragment-healing
+check reattaching only the remaining 14\%.
 
 
 \textbf{The model is more confident about its mistakes than about the lesions it finds.} Its
@@ -479,14 +502,16 @@ false positives are additionally spatially coherent (they survive Gaussian smoot
 blobs rather than dissolving as noise would), isolated, and \emph{corroborated}: they survive
 averaging across three independently trained networks because all three fire on them.
 
-We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They differ in
-where they intervene (after decoding, inside the loss, or at the seed threshold), but all three
+We evaluated seven suppression strategies against this (Table~\ref{tab:suppression}). They differ
+in where they intervene (after decoding, inside the loss, or at the seed threshold), but all three
 families reduce to the same operation, ranking components by confidence or by a quantity monotone
-in it, and all three fail for that shared reason. The breadth matters: because the families span
-the decode, the loss and the threshold, the result is not a property of one implementation but of
-the ranking quantity itself, which is what licenses the design rule. We report them in full because several are standard practice a reader would
-otherwise reasonably invest in, and knowing which branches are closed is the practical value
-here. Two mechanisms are instructive: the per-component loss penalty collapsed into global
+in it, and all three failed for that shared reason. Because they span the decode, the loss and
+the threshold, the failure is unlikely to be an artefact of one implementation. We do not claim
+more than that: seven methods on one system cannot rule out every confidence-aware approach, and
+the peak-probability comparison above is itself conditioned on the decoding threshold, so it
+shows that raising the threshold will not fix both error types rather than that confidence is
+inverted in general. We report them in full because several are standard practice a reader would
+otherwise reasonably invest in. Two mechanisms are instructive: the per-component loss penalty collapsed into global
 under-confidence, and the learned veto never learned what a false positive looks like, for the
 reason this section documents: they look like lesions.
 
@@ -494,8 +519,9 @@ reason this section documents: they look like lesions.
 \centering
 \caption{Seven suppression strategies evaluated, grouped by the quantity they rank components on.
 All three families reduce to ordering components by confidence, or by something monotone in it,
-and our false positives sit at the confident end. The shared failure is what establishes the
-design rule, and the coverage across decode, loss and threshold levels is what makes it general.}
+and our false positives sit at the confident end. The failure is shared across the decode, loss
+and threshold levels, which is what makes it a property of the ranking quantity on this system
+rather than of any one implementation.}
 \label{tab:suppression}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -528,14 +554,15 @@ scale-space (smoothed) seed  & at every matched FP rate the plain threshold dete
 \end{tabular}
 \end{table}
 
-\subsection{The false positives are anatomical mimics}
+\subsection{The false positives are consistent with anatomical mimics}
 
 Two explanations remained. Either these are anatomical \emph{mimics} (enhancing vessels, choroid
 plexus, dural structures) that a radiologist excludes using context the network lacks, or they
 are \emph{real metastases the annotators missed}, in which case part of the ceiling is not ours
 to move.
 
-Visual review of the 48 most confident false positives favours the mimic hypothesis. They are
+Visual review of the 48 most confident false positives is more consistent with the mimic
+hypothesis than with the annotation-gap one, though it does not settle between them. They are
 overwhelmingly small bright enhancing foci in three anatomically suspicious locations: at the
 cortical margin or dura, on or beside bright linear tubular structures consistent with vessels,
 and at the midline in falx and superior sagittal sinus territory. Few resemble what an annotation
@@ -543,16 +570,15 @@ gap would look like, namely an isolated round parenchymal lesion in otherwise un
 matter.
 
 That review was carried out by a non-radiologist on single axial slices, so we treated it as a
-hypothesis to test rather than a clinical assessment. Anatomical position is a genuinely
-different separation axis from confidence, so we measured it. Distance from the brain surface to the false-positive
-centroid has a median of 8.8\,mm against 11.2\,mm for reference lesion centroids, with almost
-fully overlapping interquartile ranges and an area under the ROC curve of \textbf{0.575}. False
-positives are only marginally more peripheral, and grey--white junction metastases, a common
-true presentation, sit at the same depth, so any filter aggressive enough to remove the mimics
-removes real lesions with them. The measurement is worth reporting precisely because the
-hypothesis is attractive: anatomical context is the obvious thing a radiologist uses and a network
-lacks, and we can now say what it would take for that route to work, namely a discriminant far
-sharper than raw surface proximity.
+hypothesis to test rather than a clinical assessment. Anatomical position is a genuinely different
+separation axis from confidence, so we measured it. Distance from the brain surface to the
+false-positive centroid has a median of 8.8\,mm against 11.2\,mm for reference lesion centroids,
+with almost fully overlapping interquartile ranges and an area under the ROC curve of
+\textbf{0.575}. False positives are only marginally more peripheral, and grey--white junction
+metastases, a common true presentation, sit at the same depth, so any filter aggressive enough to
+remove the mimics removes real lesions with them. The measurement is worth reporting because the
+hypothesis is attractive: making that route work would take a discriminant far sharper than raw
+surface proximity.
 
 \subsection{What target-level intervention buys, and what it costs}
 
@@ -560,13 +586,12 @@ Since decoding could not separate these errors, we attacked the 43\% of misses t
 network is wholly blind from the training side.
 
 \paragraph{Sampling frequency is not the bottleneck.} nnU-Net's sampler draws a random key from
-\texttt{class\_locations} and then a random voxel within it, so a thirty-voxel metastasis sharing
-a key with every large-lesion and oedema voxel is patch-centred approximately 0.3\% of the time.
-We added a dedicated key containing only small-component voxels, with every lesion weighted
-equally regardless of size. Verified over 4000 draws, the probability of centring a patch on a
-small lesion rose from 1.28\% to 25.75\%, a twenty-fold increase. \emph{The blindness did not
-move.} The network is not blind to small metastases because it rarely sees them, and starvation
-can be excluded as the mechanism.
+\texttt{class\_locations} then a random voxel within it, so a thirty-voxel metastasis sharing a
+key with every large-lesion and oedema voxel is patch-centred roughly 0.3\% of the time. We added
+a dedicated key holding only small-component voxels, every lesion weighted equally regardless of
+size; over 4000 verified draws the probability of centring a patch on a small lesion rose from
+1.28\% to 25.75\%, twenty-fold. \emph{The blindness did not move}, so starvation can be excluded
+as the mechanism.
 
 \paragraph{Enlarging the target does find more lesions, at a price the metric sets.} We instead dilated isolated
 small targets, so a thirty-voxel lesion presents roughly four times the volume and a larger
@@ -575,9 +600,10 @@ this lifted tumour $F_1$ by $+0.012/+0.014/+0.013$, evidence that a meaningful s
 detections are real. Grafting only the additional, non-overlapping detections onto our best
 submission raised $F_1$ by as much as $+0.034/+0.027/+0.031$ but lowered lesion-wise Dice by
 $-0.010/-0.012/-0.012$. The net effect across the official metrics was negative. The reason is specific to lesion-wise scoring and
-worth stating plainly: \emph{every newly detected small lesion enters the per-lesion Dice average
+worth stating plainly: \emph{many newly detected small lesions enter the per-lesion Dice average
 at a below-average value}, because small lesions are segmented less accurately than large ones.
-Under volumetric Dice the graft would be nearly free; under lesion-wise Dice it is not. A more
+Under volumetric Dice these components would carry far less weight; under lesion-wise Dice each
+carries as much as any other lesion. A more
 aggressive variant added 156 further components averaging six voxels each and bought only
 $+0.003/+0.004/+0.005$ $F_1$, indicating that the smallest specks are overwhelmingly mimics.
 
@@ -592,22 +618,25 @@ submission cost. It also revealed a boundary condition that applies to any team 
 trained without a held-out fold, and which we state here as a protocol.
 
 Every model was trained on these cases. For decodes (the same probabilities post-processed
-differently) this is tolerable, because memorisation is common-mode and largely cancels from a
-\emph{ranking} of candidates. It is not tolerable for a rule that changes \emph{how many
-components are kept}. On memorised cases the model rarely emits a spurious component, since it
-knows the answer, so a ``keep more components'' rule appears free, with true positives rising and
-false positives flat. On unseen data the model does emit such components and the same rule admits
-them. \textbf{Memorisation suppresses precisely the false positives that the rule would let in,
-so the harness is structurally blind to its cost.}
+differently) this is least damaging, because memorisation is common-mode and largely cancels from
+a \emph{ranking} of candidates. It is worst for a rule whose whole effect is to admit components
+the model would otherwise not have emitted: on memorised cases it rarely emits a spurious
+component, so a ``keep more components'' rule appears free, while on unseen data the same rule
+admits them. \textbf{Memorisation suppresses precisely the false positives that the rule would
+let in, so the harness is structurally blind to its cost.}
 
 The effect is not small. A cavity keep-rule measured locally at $+0.028$ lesion-wise Dice
 delivered $-0.016$ on the validation set: the wrong \emph{sign}, not merely the wrong magnitude.
 More broadly the harness consistently overestimated the size of the gains it predicted, by
-roughly a factor of three. The protocol that follows is simple and, we believe, generally applicable: thresholds and fusion
-weights may be tuned offline, because they change values rather than counts; component filters,
-keep-rules and size cutoffs may not, and must be validated on a real submission or a genuine
-held-out fold. Applying it is what let us spend our remaining submissions on decisions the
-harness could actually settle.
+roughly a factor of three.
+
+We state this as an empirical warning, not a rule. It is tempting to say thresholds and fusion
+weights are safe offline because they change values rather than counts, but they too create,
+remove, split and merge components, and lesion-wise scoring charges for every one. What we can
+report is narrower: our harness was not an unbiased validation set; rankings still transferred
+acceptably for the threshold and fusion settings we tested, which made it useful; and one
+count-expanding keep-rule reversed sign. Treat every offline decision as provisional, and be most
+suspicious of rules admitting components the model would not otherwise emit.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
@@ -615,12 +644,12 @@ harness could actually settle.
 
 Our BraTS 2026 Task 1 submission reaches lesion-wise Dice of 0.725/0.766/0.746 with no novel
 architecture and no novel loss, using ensembling as false-positive dilution and hysteresis
-decoding. Our residual deficit is entirely in tumour detection $F_1$, and we have shown it is not
-addressable by confidence-based suppression, that the false positives are anatomical mimics which
-are nonetheless not separable by anatomical position, and that lesion-wise Dice actively penalises
-recovering additional small lesions. We therefore contribute, alongside the method, a design rule
-that narrows where future effort should go and a protocol for deciding which post-processing can
-be trusted to transfer. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
+decoding. Our residual deficit is entirely in tumour detection $F_1$. Seven confidence-based suppression
+strategies failed to address it; the false positives are consistent with anatomical mimics but not
+separable by anatomical position (AUC 0.575); and lesion-wise Dice actively penalises recovering
+additional small lesions. We therefore contribute, alongside the method, an error analysis that
+narrows where future effort is likely to be repaid and a warning about which offline
+post-processing experiments transfer. All code is released at \url{https://github.com/aymuos15/brats2026-mets}.
 
 \subsubsection{Acknowledgements.} Data used in this publication were obtained as part of the
 Challenge project through Synapse ID (syn74274097).
